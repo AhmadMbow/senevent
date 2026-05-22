@@ -1,22 +1,17 @@
 "use strict";
 
 (function () {
-    window.addEventListener("load", init);
+    const id = name => document.getElementById(name);
+    const qs = selector => document.querySelector(selector);
 
-    function init() {
-        id("b1").addEventListener("click", change);
-    }
-
-    function change() {
+    const change = () => {
         qs("p").style.color = "red";
         qs("h2").style.color = "blue";
-    }
+    };
 
-    function id(name) {
-        return document.getElementById(name);
-    }
+    const init = () => {
+        id("b1").addEventListener("click", change);
+    };
 
-    function qs(selector) {
-        return document.querySelector(selector);
-    }
+    window.addEventListener("load", init);
 })();
