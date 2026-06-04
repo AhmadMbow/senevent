@@ -1,9 +1,12 @@
 import { useState } from "react";
 import EvenementCarte from "./components/EvenementCarte";
+import SearchBar from "./components/SearchBar";
+import styles from "./App.module.css";
 
 const App = () => {
   const [evenements, setEvenements] = useState([]);
   const [chargement, setChargement] = useState(false);
+  const [recherche, setRecherche] = useState("");
 
   const charger = async () => {
     setChargement(true);
@@ -17,15 +20,26 @@ const App = () => {
     setChargement(false);
   };
 
+  const evenementsFiltres = evenements.filter(ev =>
+    ev.titre.toLowerCase().includes(recherche.toLowerCase())
+  );
+
   return (
-    <div style={{ maxWidth: "700px", margin: "2rem auto",
-                  fontFamily: "sans-serif" }}>
-      <h1 style={{ color: "#1a3a5c" }}>SenEvent --- Evenements a Dakar</h1>
-      <button onClick={charger} disabled={chargement}>
+    <div className={styles.container}>
+      <h1 className={styles.titre}>SenEvent --- Evenements a Dakar</h1>
+      <button
+        className={styles.bouton}
+        onClick={charger}
+        disabled={chargement}
+      >
         {chargement ? "Chargement..." : "Charger les evenements"}
       </button>
-      {evenements.map(ev => (
-        <EvenementCarte key={ev.id} ev={ev} />
+      <SearchBar recherche={recherche} onRecherche={setRecherche} />
+      <p className={styles.compteur}>
+        {evenementsFiltres.length} evenement(s) trouve(s)
+      </p>
+      {evenementsFiltres.map(ev => (
+        <EvenementCarte key={ev.id} ev={ev} afficherDetails={true} />
       ))}
     </div>
   );
