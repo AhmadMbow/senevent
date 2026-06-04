@@ -1,0 +1,28 @@
+.carte {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin: 0.8rem 0;
+  border-radius: 8px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.carte:hover {
+  box-shadow: 0 4px 12px rgba(26, 58, 92, 0.15);
+  transform: translateY(-2px);
+}
+
+.titre {
+  margin: 0 0 0.5rem 0;
+  color: #1a3a5c;
+}
+
+.info {
+  margin: 0.2rem 0;
+  color: #555;
+}
+
+.prix {
+  margin: 0.5rem 0 0 0;
+  color: #ea7d2b;
+  font-weight: bold;
+}
