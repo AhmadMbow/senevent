@@ -1,0 +1,53 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 1rem auto;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+.champ input,
+.champ select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-weight: normal;
+}
+
+.champ input:focus,
+.champ select:focus {
+  outline: none;
+  border-color: #1a3a5c;
+}
+
+.erreur {
+  color: #a01a1a;
+  font-size: 0.85rem;
+  font-weight: normal;
+}
+
+.bouton {
+  padding: 0.6rem;
+  font-size: 1rem;
+  background: #1a3a5c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.bouton:hover {
+  background: #2a4d70;
+}

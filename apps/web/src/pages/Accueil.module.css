@@ -1,0 +1,27 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+.titre {
+  color: #1a3a5c;
+  text-align: center;
+}
+
+.compteur {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.messageVide {
+  text-align: center;
+  color: #888;
+  padding: 2rem;
+}
+
+.grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}

@@ -1,0 +1,1833 @@
+DAWM — Développement d’Applications Web & Mobile 
+Master 1 RETEL — 2025-2026 
+Lab 5 
+Supabase 
+projet, schéma SQL, auth 
+Un backend sans backend à coder 
+Durée 3 heures (1 séance) 
+Bloc Backend (1 / 2) 
+Tag de sortie v0.5-supabase 
+Compétence visée Projet Supabase, schéma SQL, RLS, client JS, auth signup/login F5 ne perdra plus jamais rien.
+Point clé — Informations pratiques 
+Durée estimée 3 heures (1 séance complète) 
+Prérequis Lab 4 terminé (tag v0.4-spa posé). La SPA à 3 routes fonctionne. Un compte GitHub est nécessaire pour créer un projet Supabase 
+(auth via GitHub recommandée). 
+Point de départ La branche main après merge du Lab 4. 
+Livrables Un projet Supabase créé, 3 tables SQL en place (profiles, evenements, inscriptions), les 5 événements seed insérés, les po 
+litiques RLS configurées, le client @supabase/supabase-js confi 
+guré côté React, un écran d’inscription et de connexion fonctionnel. 
+Tag de sortie v0.5-supabase posé par le Git master sur main. Git master Mansour (dernier lab de son mandat 3–5, Khady prend le relais au Lab 6). 
+Ce que vous gagnez — Ce que vous allez maîtriser 
+1. Créer un projet Supabase depuis le dashboard et repérer les 3 services qu’on utilise : Auth, PostgreSQL, Storage. 
+2. Écrire un schéma SQL avec clés primaires, clés étrangères, contraintes de type et valeurs par défaut. 
+3. Comprendre et configurer Row Level Security (RLS) — la sécurité écrite en base, pas dans le code. 
+4. Écrire des politiques RLS pour les cas classiques : lecture publique, écriture authen tifiée, modification par le propriétaire seulement. 
+5. Insérer des données seed via le SQL Editor de Supabase. 
+6. Installer @supabase/supabase-js et configurer un client depuis les variables d’envi ronnement de Vite. 
+7. Ne jamais committer un fichier .env : c’est un réflexe DevOps qu’on installe ici. 8. Implémenter un écran d’authentification avec signUp, signInWithPassword, signOut. 
+9. Écouter les changements de session avec onAuthStateChange et exposer l’utilisateur connecté au reste de l’application. 
+Table des matières 
+1 Pourquoi ce lab ? 3 
+2 Étape 0 — Création du projet Supabase 4 2.1 Créer le compte et le projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4 2.2 Récupérer les identifiants du projet . . . . . . . . . . . . . . . . . . . . . . . . . . 5 
+3 Étape 1 — Le schéma SQL 5 3.1 Table profiles . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5 3.2 Table evenements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6 3.3 Table inscriptions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6 3.4 Vérification . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+4 Étape 2 — Row Level Security 7 4.1 Activer RLS sur chaque table . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7 4.2 Politiques pour evenements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7 4.3 Politiques pour profiles et inscriptions . . . . . . . . . . . . . . . . . . . . . 8 
+5 Étape 3 — Insérer les 5 événements seed 9 
+6 Étape 4 — Configurer le client Supabase dans React 9 6.1 Installer le SDK . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9 6.2 Le fichier .env.local . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9 6.3 Le client Supabase . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10 
+7 Étape 5 — Authentification signup / login 10 7.1 Le composant Auth . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10 7.2 Gérer la session dans App . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12 7.3 Adapter la NavBar . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 7.4 Tester le parcours d’auth complet . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 
+8 Aide-mémoire 16 
+9 Validation du Lab 5 16 9.1 Checklist . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16 9.2 Vérification côté enseignant (Git uniquement) . . . . . . . . . . . . . . . . . . . . 17 9.3 Découpage en sous-tâches pour l’équipe . . . . . . . . . . . . . . . . . . . . . . . 17 9.4 Tag de fin de lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 9.5 Vers le Lab 6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 
+Dr. El Hadji Bassirou TOURE 2 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+1 Pourquoi ce lab ? 
+Rappelez-vous la limite du Lab 4 : les événements créés par le formulaire vivent dans un useState d’App.jsx. Un F5, et tout disparaît. Le mock JSON evenements.json n’est pas mo difiable depuis le navigateur, et personne ne peut se connecter à quoi que ce soit puisqu’il n’y a pas de comptes utilisateurs. 
+Ce lab installe l’infrastructure qui résout tout ça d’un coup : Supabase. Concept — BaaS : Backend-as-a-Service 
+Supabase est un Backend-as-a-Service : il fournit tout ce qu’un backend traditionnel ap porte — base de données PostgreSQL, authentification, stockage de fichiers, API REST auto-générée — sans qu’on ait à écrire une seule ligne de code serveur. 
+Concrètement : au lieu d’écrire un serveur Express ou Django qui expose des routes /api/evenements, on déclare des tables SQL et Supabase génère l’API automatique ment. La sécurité se fait en base de données avec Row Level Security, pas dans des middlewares Node. 
+Alternative libre à Firebase, open source, hébergement managé gratuit jusqu’à un certain volume, ou auto-hébergeable. 
+Intuition — L’idée-clé : la sécurité vit en base 
+Dans un backend traditionnel, quand un utilisateur tape « cette page », le code serveur vérifie l’authentification, filtre les données selon les droits, retourne un JSON. Toute la sécurité est dans le code applicatif. 
+Avec Supabase, l’API est publique : n’importe qui peut appeler SELECT * FROM evenements. Ce qui protège les données, ce sont les politiques RLS attachées à la table : « cet utilisateur ne peut voir que les événements où organisateur_id = auth.uid() ». La règle est écrite en SQL, testée en base, appliquée par PostgreSQL lui-même. Le code React ne peut pas la contourner. 
+C’est un changement de mentalité : quand on écrit du code React qui appelle Supabase, on n’a jamais à vérifier les droits soi-même. On écrit la requête souhaitée, PostgreSQL applique les règles. 
+Dr. El Hadji Bassirou TOURE 3 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Le schema SenEvent dans Supabase 
+Trois tables, des relations claires, une securite ecrite en base (RLS) 
+SUPABASE (BaaS) 
+auth.users 
+(fournie par Supabase) 
+PK id (uuid) 
+email 
+encrypted_password created_at 
+1..1 
+organise 
+public.profiles 
+PK, FK id (uuid) 
+nom (text) 
+telephone (text) 
+role (text) 
+= PUBLIC | ORGANISATEUR 
+public.evenements 
+PK id (bigint, auto) 
+titre (text, not null) 
+categorie (text) 
+lieu_nom (text) 
+date_debut (timestamptz) 
+s'inscrit 
+| ADMIN 
+created_at 
+RLS : lecture publique, 
+update uniquement soi-meme 
+public.inscriptions 
+prix (integer, default 0) 
+FK organisateur_id (uuid) 
+RLS : lecture publique, INSERT si auth, UPDATE/DELETE si owner a 
+Auth 
+signup / login / session (Lab 5) 
+PK id (bigint) FK evenement_id FK utilisateur_id RLS : lecture publique, INSERT si auth, DELETE si owner. UNIQUE(evenement_id, utilisateur_id). 
+Les 3 services Supabase qu'on utilise dans le cours 
+PostgreSQL 
+SELECT / INSERT / UPDATE / DELETE (Lab 6) 
+Storage 
+images d'evenements (Lab 6) 
+Figure 1 – Le schéma cible du projet SénEvent. Trois tables applicatives (profiles, evenements, inscriptions) reliées à la table auth.users fournie par Supabase. Chaque table porte ses propres politiques RLS. Les trois services utilisés au cours du semestre : Auth (Lab 5), PostgreSQL (Lab 6), Storage (Lab 6). 
+2 Étape 0 — Création du projet Supabase 
+2.1 Créer le compte et le projet 
+Rendez-vous sur https://supabase.com. Cliquez « Start your project », puis authentifiez vous avec votre compte GitHub. C’est le plus simple et ça évite un mot de passe supplémen taire à retenir. 
+Une fois connecté, sur le dashboard : 
+1. Cliquez New project. 
+2. Organization : choisissez la vôtre (créée automatiquement à l’inscription). 3. Name : senevent-equipe-X (adaptez avec le numéro de votre équipe). 4. Database password : générez-en un fort. Notez-le dans le canal privé de l’équipe — on n’en aura pas besoin souvent, mais on ne le retrouve pas si on l’oublie. 
+5. Region : choisissez West EU (London) ou Central EU (Frankfurt) — la plus proche de Dakar. 
+6. Pricing plan : Free. Suffit pour tout le cours. 
+Cliquez « Create new project ». Attendez environ 2 minutes que Supabase provisionne la base de données et les services. 
+Attention — Un seul projet Supabase par équipe 
+Un membre de l’équipe crée le projet et invite les deux autres comme membres de l’organisation Supabase (bouton « Invite » dans les paramètres de l’organisation). C’est essentiel pour que les trois puissent tester la même base et voir les mêmes données. Ne créez pas trois projets séparés : vous auriez des schémas divergents. 
+Dr. El Hadji Bassirou TOURE 4 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+2.2 Récupérer les identifiants du projet 
+Une fois le projet créé, dans le menu de gauche : Project Settings → API. Deux valeurs sont à noter : 
+Nom Description 
+Project URL https://xyz.supabase.co — l’URL de votre projet. 
+anon public Une clé publique. C’est le token qu’utilisera le client React pour parler à Supabase. Publique = peut apparaître dans le code du 
+navigateur. La RLS est ce qui empêche l’abus. 
+Gardez ces deux valeurs à portée : on s’en sert à l’Étape 4. 
+Attention — Ne pas confondre anon et service_role 
+Sur la même page, vous verrez une clé service_role. Elle a tous les droits : elle contourne RLS. Ne l’utilisez jamais dans le client React. Elle est réservée aux scripts serveur, aux migrations, aux tâches d’admin. La confondre avec la clé anon = fuite de sécurité massive. 
+3 Étape 1 — Le schéma SQL 
+Dans le menu de gauche du dashboard Supabase : SQL Editor. C’est un éditeur SQL en ligne, connecté directement à votre base PostgreSQL. 
+3.1 Table profiles 
+Cette table prolonge auth.users (fournie par Supabase) avec nos champs applicatifs : nom d’affichage, téléphone, rôle. Une ligne dans profiles pour une ligne dans auth.users, avec le même id. 
+Copiez ce SQL dans le SQL Editor et cliquez Run : 
+create table public . profiles ( 
+id uuid primary key references auth . users ( id ) on delete cascade , nom text not null , 
+telephone text , 
+role text not null default ’PUBLIC ’ 
+check ( role in (’PUBLIC ’, ’ ORGANISATEUR ’, ’ADMIN ’) ) , 
+created_at timestamptz not null default now () 
+) ;
+
+Dr. El Hadji Bassirou TOURE 5 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Point clé — Décoder ce SQL 
+Élément Signification 
+id uuid primary key Chaque ligne a un identifiant unique de type UUID. references auth.users(id) Cet id doit exister dans auth.users (clé étrangère). on delete cascade Si l’utilisateur supprime son compte, sa ligne profiles disparaît aussi. 
+check (role in ...) PostgreSQL refuse toute valeur autre que PUBLIC, ORGANISATEUR, ADMIN. 
+default now() Si on ne fournit pas la date, PostgreSQL met l’heure actuelle. 
+3.2 Table evenements 
+create table public . evenements ( 
+id bigint generated always as identity primary key , 
+titre text not null check ( char_length ( titre ) >= 3) , 
+categorie text not null 
+check ( categorie in (’concert ’,’expo ’,’conference ’,’atelier ’,’soutenance ’) ) , 
+lieu_nom text not null , 
+date_debut timestamptz not null , 
+prix integer not null default 0 check ( prix >= 0) , 
+image_url text , 
+organisateur_id uuid references public . profiles ( id ) on delete set null , created_at timestamptz not null default now () 
+) ;
+
+Concept — generated always as identity : le remplaçant de serial 
+En PostgreSQL moderne, generated always as identity est la façon standard de créer une clé primaire auto-incrémentée. C’est équivalent au vieux serial, mais plus explicite : PostgreSQL fournit la valeur à chaque INSERT, vous ne pouvez pas l’écraser accidentelle ment. 
+3.3 Table inscriptions 
+create table public . inscriptions ( 
+id bigint generated always as identity primary key , 
+evenement_id bigint not null references public . evenements ( id ) on delete cascade , 
+utilisateur_id uuid not null references auth . users ( id ) on delete cascade , created_at timestamptz not null default now () , 
+unique ( evenement_id , utilisateur_id ) 
+) ;
+
+La contrainte unique (evenement_id, utilisateur_id) empêche un utilisateur de s’ins crire deux fois au même événement. C’est PostgreSQL qui garantit ça, pas le code React. 
+Dr. El Hadji Bassirou TOURE 6 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+3.4 Vérification 
+Dans le menu de gauche : Table Editor. Vous devez voir vos 3 tables sous le schéma public. Cliquez sur chacune, vérifiez les colonnes. 
+$ git checkout -b feature / lab5 - supabase 
+$ mkdir -p supabase / migrations 
+Créez le fichier supabase/migrations/001_schema.sql à la racine du repo avec le SQL ci dessus (les trois create table). C’est essentiel : le schéma vit dans Git aussi, pas seulement dans le dashboard. 
+$ git add supabase 
+$ git commit -m " schema SQL initial : profiles , evenements , inscriptions " 
+4 Étape 2 — Row Level Security 
+4.1 Activer RLS sur chaque table 
+Par défaut, dès qu’on active RLS sur une table, tout accès est refusé tant qu’aucune politique n’autorise l’action. C’est le deny-by-default. On active : 
+alter table public . profiles enable row level security ; 
+alter table public . evenements enable row level security ; 
+alter table public . inscriptions enable row level security ;
+
+Testez immédiatement dans le SQL Editor : 
+select * from public . evenements ;
+
+Vous voyez 0 lignes, alors qu’on va bientôt en insérer 5. C’est normal : RLS bloque tout tant qu’on n’a rien autorisé. 
+Attention — Piège classique : oublier RLS = fuite totale 
+Si vous laissez la RLS désactivée sur une table publique, n’importe qui peut lire, écrire, supprimer via la clé anon. C’est la fuite de données la plus fréquente sur les projets Supabase mal configurés. Réflexe : dès qu’une table est créée, activer RLS et écrire au moins une politique de lecture. 
+4.2 Politiques pour evenements 
+Quatre politiques classiques : lecture publique, insertion pour utilisateurs authentifiés, mise à jour et suppression uniquement par le propriétaire. 
+-- Tout le monde peut lire ( meme anonyme ) 
+create policy " evenements_select_public " 
+on public . evenements 
+for select 
+using ( true ) ; 
+-- Un utilisateur authentifie peut inserer , et devient organisateur create policy " evenements_insert_auth " 
+on public . evenements 
+for insert 
+to authenticated 
+with check ( organisateur_id = auth . uid () ) ; 
+Dr. El Hadji Bassirou TOURE 7 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+-- Seul l’ organisateur peut modifier son evenement 
+create policy " evenements_update_owner " 
+on public . evenements 
+for update 
+to authenticated 
+using ( organisateur_id = auth . uid () ) ; 
+-- Seul l’ organisateur peut supprimer son evenement 
+create policy " evenements_delete_owner " 
+on public . evenements 
+for delete 
+to authenticated 
+using ( organisateur_id = auth . uid () ) ; 
+Point clé — Comprendre using vs with check 
+Clause Rôle 
+using(...) Qui peut voir/modifier des lignes existantes. Appliqué avant l’opération. Ex. : « l’organisateur ne peut modifier que ses événements ». 
+with 
+check(...) 
+Quelles valeurs peut prendre une ligne insérée ou modifiée. Appliqué après. Ex. : « une insertion doit avoir organisateur_id = auth.uid() » (empêche de créer un événement au nom de quelqu’un d’autre). 
+4.3 Politiques pour profiles et inscriptions 
+-- profiles : lecture publique 
+create policy " profiles_select_public " 
+on public . profiles for select using ( true ) ; 
+-- profiles : un utilisateur peut inserer / modifier UNIQUEMENT sa propre ligne create policy " profiles_insert_self " 
+on public . profiles for insert to authenticated 
+with check ( id = auth . uid () ) ; 
+create policy " profiles_update_self " 
+on public . profiles for update to authenticated 
+using ( id = auth . uid () ) ; 
+-- inscriptions : lecture publique 
+create policy " inscriptions_select_public " 
+on public . inscriptions for select using ( true ) ; 
+-- inscriptions : un utilisateur ne peut s’ inscrire QUE lui - meme create policy " inscriptions_insert_self " 
+on public . inscriptions for insert to authenticated 
+with check ( utilisateur_id = auth . uid () ) ; 
+-- inscriptions : et se desinscrire uniquement de ses propres inscriptions create policy " inscriptions_delete_self " 
+on public . inscriptions for delete to authenticated 
+using ( utilisateur_id = auth . uid () ) ;
+
+Ajoutez ces politiques à supabase/migrations/002_rls.sql. 
+$ git add supabase / migrations /002 _rls . sql 
+$ git commit -m " active RLS et pose les politiques par table " Dr. El Hadji Bassirou TOURE 8 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+5 Étape 3 — Insérer les 5 événements seed 
+RLS bloque toute écriture non authentifiée. Pour insérer des données seed, on contourne temporairement RLS en tant qu’administrateur du dashboard. Dans le SQL Editor, cette requête tourne avec les droits complets : 
+insert into public . evenements ( titre , categorie , lieu_nom , date_debut , prix , image_url ) 
+values 
+(’Concert acoustique de Youssou Junior ’, ’concert ’, 
+’Theatre National Daniel Sorano ’, ’2026 -06 -12 20:00:00+00 ’, 5000 , ’https :// placehold .co /400 x250 /1 a3a5c /fff ? text = Concert ’) , 
+(’Expo photo : Dakar la nuit ’, ’expo ’, 
+’Galerie le Manege ’, ’2026 -06 -15 18:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 / ea7d2b /fff ? text = Expo ’) , 
+(’ Conference IA et sante en Afrique ’, ’conference ’, 
+’Amphi UCAD 2’, ’2026 -06 -18 10:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 /3 aa84d /fff ? text = Conf ’) , 
+(’Atelier batik traditionnel ’, ’atelier ’, 
+’Village Artisanal Soumbedioune ’, ’2026 -06 -22 14:00:00+00 ’, 3000 , ’https :// placehold .co /400 x250 / cc1f1f /fff ? text = Atelier ’) , 
+(’ Soutenance publique : energies renouvelables ’, ’soutenance ’, ’ESP - UCAD ’, ’2026 -06 -25 09:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 /8 a6d10 /fff ? text = These ’) ;
+
+Cliquez Run. Puis : 
+select id , titre , categorie from public . evenements order by id ;
+
+Vous devez voir vos 5 lignes. Enregistrez ce SQL dans supabase/migrations/003_seed.sql. 
+$ git add supabase / migrations /003 _seed . sql 
+$ git commit -m " seed 5 evenements initiaux " 
+6 Étape 4 — Configurer le client Supabase dans React 6.1 Installer le SDK 
+$ cd apps / web 
+$ npm install @supabase / supabase - js 
+6.2 Le fichier .env.local 
+Vite lit automatiquement un fichier .env.local à la racine du projet. Toute variable préfixée par VITE_ est exposée au code client (accessible via import.meta.env.VITE_XXX). Créez apps/web/.env.local : 
+VITE_SUPABASE_URL = https :// xyz . supabase . co 
+VITE_SUPABASE_ANON_KEY = eyJhbG ... votre - cle - anon ... 
+Remplacez par les valeurs récupérées à l’Étape 0. 
+Dr. El Hadji Bassirou TOURE 9 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Attention — NE COMMITEZ JAMAIS .env.local 
+Ce fichier contient des identifiants qui, même publics (clé anon), ne doivent pas trainer dans l’historique Git. Vérifiez que .gitignore à la racine du repo contient bien .env*.local. Si ce n’est pas déjà le cas : 
+$ echo "" >> . gitignore 
+$ echo "# Variables d ’ environnement locales " >> . gitignore 
+$ echo ". env . local " >> . gitignore 
+$ echo ". env *. local " >> . gitignore 
+$ git add . gitignore 
+$ git commit -m " ignore les fichiers . env locaux " 
+Vérifiez avec git status : .env.local ne doit jamais apparaître. 
+6.3 Le client Supabase 
+Créez apps/web/src/lib/supabase.js : 
+import { createClient } from " @supabase / supabase -js"; 
+const url = import . meta . env . VITE_SUPABASE_URL ; 
+const anonKey = import . meta . env . VITE_SUPABASE_ANON_KEY ; 
+if (! url || ! anonKey ) { 
+throw new Error ( 
+" Variables Supabase manquantes . Verifiez apps / web /. env. local " ) ; 
+} 
+export const supabase = createClient ( url , anonKey ) ;
+
+Concept — Un seul client Supabase par app 
+Le createClient configure un client avec la persistance de session, l’écoute des change ments d’auth, la connexion realtime. Créer plusieurs clients dans une même application créerait des désynchronisations. On l’exporte une fois depuis lib/supabase.js et on l’importe partout où on en a besoin. 
+Test rapide dans la console du navigateur (ouvrez http://localhost:5173, F12 → Console) : 
+// Dans la console du navigateur 
+import ("./ src/lib / supabase .js") . then ( m => 
+m . supabase . from (" evenements ") . select ("id , titre ") . then ( console . log ) ) ;
+
+Vous devez voir un objet { data: [ ...5 evenements... ], error: null }. Si vous voyez data: [], c’est que RLS n’a pas de politique select ouverte. 
+$ git add apps / web / src / lib apps / web / package . json apps / web / package - lock . json $ git commit -m " installe @supabase / supabase - js et configure le client " 
+7 Étape 5 — Authentification signup / login 
+7.1 Le composant Auth 
+Créez apps/web/src/pages/Auth.jsx : 
+Dr. El Hadji Bassirou TOURE 10 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+import { useState } from " react "; 
+import { supabase } from "../ lib/ supabase "; 
+import { useNavigate } from "react - router -dom"; 
+import styles from "./ Auth . module .css"; 
+const Auth = () = > { 
+const [ mode , setMode ] = useState (" login ") ; // " login " | " signup " const [ email , setEmail ] = useState ("") ; 
+const [ motDePasse , setMotDePasse ] = useState ("") ; 
+const [ nom , setNom ] = useState ("") ; 
+const [ erreur , setErreur ] = useState ( null ) ; 
+const [ enCours , setEnCours ] = useState ( false ) ; 
+const navigate = useNavigate () ; 
+const soumettre = async ( event ) = > { 
+event . preventDefault () ; 
+setErreur ( null ) ; 
+setEnCours ( true ) ; 
+try { 
+if ( mode === " signup ") { 
+const { data , error } = await supabase . auth . signUp ({ 
+email , 
+password : motDePasse , 
+}) ; 
+if ( error ) throw error ; 
+// Creer la ligne profile associee 
+if ( data . user ) { 
+const { error : e2 } = await supabase 
+. from (" profiles ") 
+. insert ({ id : data . user . id , nom , role : " PUBLIC " }) ; 
+if ( e2 ) throw e2 ; 
+} 
+} else { 
+const { error } = await supabase . auth . signInWithPassword ({ 
+email , 
+password : motDePasse , 
+}) ; 
+if ( error ) throw error ; 
+} 
+navigate ("/") ; 
+} catch ( e ) { 
+setErreur ( e . message ) ; 
+} finally { 
+setEnCours ( false ) ; 
+} 
+}; 
+return ( 
+< form className ={ styles . form } onSubmit ={ soumettre } > 
+<h2 >{ mode === " signup " ? " Creer un compte " : "Se connecter "} </ h2 > 
+{ mode === " signup " && ( 
+< label className ={ styles . champ } > 
+Nom d’affichage 
+<input 
+type =" text " 
+value ={ nom} 
+onChange ={e = > setNom (e. target . value )} 
+required 
+/ > 
+Dr. El Hadji Bassirou TOURE 11 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+</label > 
+)} 
+<label className ={ styles . champ } > 
+Email 
+<input 
+type =" email " 
+value ={ email } 
+onChange ={e = > setEmail (e. target . value )} 
+required 
+/ > 
+</label > 
+<label className ={ styles . champ } > 
+Mot de passe 
+<input 
+type =" password " 
+value ={ motDePasse } 
+onChange ={e = > setMotDePasse (e. target . value )} 
+minLength ="6" 
+required 
+/ > 
+</label > 
+{ erreur && <p className ={ styles . erreur } >{ erreur } </p >} 
+<button type =" submit " disabled ={ enCours } className ={ styles . bouton } > { enCours 
+? "..." 
+: mode === " signup " ? " Creer le compte " : "Se connecter "} 
+</ button > 
+<button 
+type =" button " 
+onClick ={() = > setMode ( mode === " signup " ? " login " : " signup ")} className ={ styles . basculer } 
+> 
+{ mode === " signup " 
+? " Deja un compte ? Se connecter " 
+: "Pas encore de compte ? Creer "} 
+</ button > 
+</form > 
+); 
+}; 
+export default Auth ; 
+Créez le CSS apps/web/src/pages/Auth.module.css en reprenant les mêmes styles que NouvelEvenement.module.css du Lab 4 (mêmes conventions). 
+7.2 Gérer la session dans App 
+Modifiez apps/web/src/App.jsx pour écouter la session de l’utilisateur connecté : 
+import { useState , useEffect } from " react "; 
+import { BrowserRouter , Routes , Route } from "react - router -dom"; import { supabase } from "./ lib / supabase "; 
+import Accueil from "./ pages / Accueil "; 
+import NouvelEvenement from "./ pages / NouvelEvenement "; 
+import Detail from "./ pages / Detail "; 
+import Auth from "./ pages / Auth "; 
+import NavBar from "./ components / NavBar "; 
+Dr. El Hadji Bassirou TOURE 12 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+const App = () = > { 
+const [ evenements , setEvenements ] = useState ([]) ; 
+const [ chargement , setChargement ] = useState ( true ) ; 
+const [ erreur , setErreur ] = useState ( null ) ; 
+const [ session , setSession ] = useState ( null ) ; 
+useEffect (() = > { 
+// Recuperer la session actuelle au montage 
+supabase . auth . getSession () . then (({ data }) = > { 
+setSession ( data . session ) ; 
+}) ; 
+// Ecouter tout changement de session (login , logout , refresh ) const { data : subscription } = supabase . auth . onAuthStateChange ( ( _event , newSession ) = > { 
+setSession ( newSession ) ; 
+} 
+) ; 
+return () = > subscription . subscription . unsubscribe () ; 
+} , []) ; 
+// La fonction charger () du Lab 3 reste pour l’instant , on l’adaptera au Lab 6 
+const charger = async () = > { 
+setChargement ( true ) ; 
+setErreur ( null ) ; 
+try { 
+const reponse = await fetch ("/ evenements . json ") ; 
+if (! reponse . ok ) throw new Error (‘Erreur HTTP ${ reponse . status }‘) ; const data = await reponse . json () ; 
+setEvenements ( data ) ; 
+} catch ( e ) { 
+setErreur ( e . message ) ; 
+} finally { 
+setChargement ( false ) ; 
+} 
+}; 
+useEffect (() = > { charger () ; } , []) ; 
+const ajouterEvenement = ( nouvel ) = > { 
+setEvenements ( precedents = > [ nouvel , ... precedents ]) ; 
+}; 
+return ( 
+< BrowserRouter > 
+< NavBar session ={ session } / > 
+< Routes > 
+< Route path ="/" element ={ < Accueil evenements ={ evenements } 
+chargement ={ chargement } 
+erreur ={ erreur } 
+onReessayer ={ charger } / >} / > 
+< Route path ="/ nouveau " element ={ < NouvelEvenement 
+onAjouter ={ ajouterEvenement } / >} / > 
+< Route path ="/ evenement /: id" element ={ < Detail evenements ={ evenements } / >} / > 
+< Route path ="/ auth " element ={ < Auth / >} / > 
+</ Routes > 
+</ BrowserRouter > 
+) ; 
+}; 
+Dr. El Hadji Bassirou TOURE 13 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+export default App ; 
+Point clé — Le pattern session Supabase 
+1. Au montage, supabase.auth.getSession() lit la session en cache (dans le localSto rage). 
+2. onAuthStateChange enregistre un écouteur : à chaque login/logout/refresh de token, on met à jour l’état session. 
+3. La fonction retournée par useEffect désabonne l’écouteur au démontage — exactement le pattern de nettoyage vu au bonus du Lab 3. 
+Résultat : n’importe où dans l’application, la valeur session reflète en temps réel l’état d’auth. Si l’utilisateur ferme un autre onglet et se déconnecte, cet onglet-ci le voit tout de suite. 
+7.3 Adapter la NavBar 
+Modifiez apps/web/src/components/NavBar.jsx pour afficher les liens différemment selon session : 
+import { NavLink } from "react -router -dom"; 
+import { supabase } from "../ lib/ supabase "; 
+import styles from "./ NavBar . module . css"; 
+const NavBar = ({ session }) = > { 
+const lienActif = ({ isActive }) = > 
+isActive ? ‘${ styles . lien } ${ styles . lienActif }‘ : styles . lien ; 
+const seDeconnecter = async () = > { 
+await supabase . auth . signOut () ; 
+}; 
+return ( 
+< nav className ={ styles . nav } > 
+< div className ={ styles . logo } > SenEvent </ div > 
+< div className ={ styles . liens } > 
+< NavLink to ="/" end className ={ lienActif } > Accueil </ NavLink > 
+{ session && ( 
+< NavLink to ="/ nouveau " className ={ lienActif } > Nouvel 
+evenement </ NavLink > 
+) } 
+{ session ? ( 
+<> 
+< span className ={ styles . email } >{ session . user . email } </ span > 
+< button onClick ={ seDeconnecter } className ={ styles . deconnexion } > Se deconnecter 
+</ button > 
+</> 
+) : ( 
+< NavLink to ="/ auth " className ={ lienActif } > Se connecter </ NavLink > ) } 
+</ div > 
+</ nav > 
+) ; 
+}; 
+export default NavBar ;
+
+Ajoutez les 2 nouveaux styles à NavBar.module.css : 
+Dr. El Hadji Bassirou TOURE 14 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+. email { 
+color : # a8c5e0 ; 
+font - size : 0.9 rem ; 
+} 
+. deconnexion { 
+background : transparent ; 
+border : 1 px solid # ea7d2b ; 
+color : # ea7d2b ; 
+padding : 0.3 rem 0.8 rem ; 
+border - radius : 4 px ; 
+cursor : pointer ; 
+} 
+. deconnexion : hover { 
+background : # ea7d2b ; 
+color : white ; 
+} 
+7.4 Tester le parcours d’auth complet 
+Rafraîchissez la page. Vous devez voir « Se connecter » dans la NavBar. Puis : 1. Cliquez « Se connecter ». La page /auth s’affiche. 
+2. Basculez sur « Créer un compte ». Saisissez nom, email, mot de passe (6 caractères min). Cliquez « Créer le compte ». 
+3. Vérifiez votre boîte mail : Supabase envoie un lien de confirmation par défaut. Cliquez dessus. Vous êtes redirigé vers l’application. 
+4. La NavBar affiche maintenant votre email et un bouton « Se deconnecter ». Le lien « Nouvel événement » apparaît (visible seulement si connecté). 
+5. Cliquez « Se deconnecter ». Retour à l’état non connecté. 
+Dans le dashboard Supabase : Authentication → Users. Votre utilisateur y apparaît. Table Editor → profiles. Une ligne avec votre id, nom, rôle PUBLIC. 
+Attention — Confirmation d’email en développement 
+En dev, la confirmation par email peut ralentir les tests. Dans Authentication → Provi ders → Email, désactivez temporairement Confirm email. Réactivez avant la production. 
+$ git commit - am " auth Supabase : signup , login , deconnexion , NavBar contextuelle " 
+Dr. El Hadji Bassirou TOURE 15 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 8 Aide-mémoire 
+Concept Syntaxe / exemple 
+Créer table SQL create table public.x (id ... primary key, ...); 
+Clé étrangère references public.y(id) on delete cascade Contrainte de valeur check (col in (’A’,’B’,’C’)) 
+Auto-incrément bigint generated always as identity 
+Activer RLS alter table public.x enable row level security; 
+Politique SELECT public create policy ... for select using (true); Politique par owner ... using (col = auth.uid()) 
+Récupérer l’user auth.uid() en SQL, supabase.auth.getUser() en JS 
+Installer le SDK npm install @supabase/supabase-js 
+Créer le client createClient(url, anonKey) dans lib/supabase.js 
+Variables Vite import.meta.env.VITE_XXX 
+Ignorer les env .env.local dans .gitignore 
+Signup supabase.auth.signUp({ email, password }) Login supabase.auth.signInWithPassword({ email, password }) 
+Session supabase.auth.getSession() 
+Écouter session supabase.auth.onAuthStateChange((e, s) => ...) 
+Logout supabase.auth.signOut() 
+Commit Git git commit -m "ajoute schema supabase + rls" Tag du lab git tag -a v0.5-supabase 
+9 Validation du Lab 5 
+9.1 Checklist 
+✓ Un projet Supabase existe, les 3 membres de l’équipe y sont invités 
+✓ Les 3 tables profiles, evenements, inscriptions sont visibles dans le Table Editor ✓ RLS est activée sur les 3 tables (pastille verte « RLS enabled » dans le Table Editor) ✓ Les politiques SELECT publiques permettent au client non authentifié de lire les 5 événements ✓ Les 5 événements seed sont dans public.evenements 
+✓ Le repo contient supabase/migrations/ avec 3 fichiers SQL (001_schema.sql, 002_rls.sql, 003_seed.sql) 
+✓ apps/web/.env.local existe localement et est ignoré par Git 
+✓ Créer un compte via l’app fait apparaître un utilisateur dans Auth et une ligne dans profiles Dr. El Hadji Bassirou TOURE 16 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+✓ La NavBar affiche l’email et le bouton « Se deconnecter » quand connecté ✓ Le tag v0.5-supabase est posé sur main 
+9.2 Vérification côté enseignant (Git uniquement) 
+$ git shortlog - sne v0 .4 - spa .. v0 .5 - supabase 
+$ git log v0 .4 - spa .. v0 .5 - supabase -- oneline 
+$ ls supabase / migrations / 
+$ git ls - files | grep -c "\. env " # doit retourner 0 
+$ grep -l " createClient \| supabase . auth " apps / web / src /**/*. js * 
+Un .env.local committé (résultat non-zéro à la 4e commande) = drapeau rouge et perte de points. 
+9.3 Découpage en sous-tâches pour l’équipe 
+À faire — Trois sous-tâches équivalentes — Mansour Git master, dernier lab de son mandat 
+— Sous-tâche A — Atou : créer le projet Supabase, inviter les 2 autres membres, écrire et exécuter les 3 create table (Étape 1), insérer les 5 événements seed (Étape 3), commit des 3 fichiers SQL dans supabase/migrations/. 
+— Sous-tâche B — Mansour (Git master) : écrire et poser toutes les politiques RLS (Étape 2), tester en SQL Editor que les lectures/écritures se comportent comme attendu, installer @supabase/supabase-js, créer lib/supabase.js et .env.local (Étape 4), vérifier que .gitignore bloque bien les env, coordonner les merges. 
+— Sous-tâche C — Khady : créer la page Auth.jsx + son CSS Module (Étape 5, début), gérer la session dans App.jsx (onAuthStateChange), adapter la NavBar pour montrer email/déconnexion (Étape 5, fin). 
+Ordre de merge obligatoire : A doit être mergé avant B (RLS a besoin des tables), et B avant C (le composant Auth a besoin du client Supabase configuré). Séquentiel, pas parallèle. 
+9.4 Tag de fin de lab 
+$ git checkout main 
+$ git pull origin main 
+$ git tag -a v0 .5 - supabase -m " Lab 5 termine : Supabase + schema + RLS + auth " $ git push origin v0 .5 - supabase 
+9.5 Vers le Lab 6 
+Ce que vous gagnez — Limite actuelle, qui ouvre le Lab 6 
+Aujourd’hui, l’application est à moitié branchée sur Supabase : 
+— L’auth passe par Supabase — login, session, déconnexion. 
+— Les événements viennent encore du mock JSON — rien n’a changé côté catalogue. Au Lab 6, on remplace fetch("/evenements.json") par supabase.from(’evenements’).select(). Le formulaire NouvelEvenement fait un vrai INSERT. Le bouton d’inscription à un événement fait un INSERT dans inscriptions. 
+Dr. El Hadji Bassirou TOURE 17 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Ajout d’un upload d’image via Supabase Storage. La persistance devient réelle : F5 ne perd plus rien. 
+Khady prend le mandat Git master pour les Labs 6–8. 
+Exercice bonus — Pour ceux qui terminent en avance 
+Intuition — Bonus : un trigger SQL pour créer le profil automatiquement 
+Aujourd’hui, à l’inscription, on fait deux appels : signUp puis insert dans profiles. Si le premier réussit mais le second échoue (bug réseau, RLS mal configurée), on se retrouve avec un utilisateur sans profil. 
+Le bon pattern PostgreSQL : un trigger qui crée automatiquement la ligne profiles quand un utilisateur est ajouté à auth.users. 
+create or replace function public . handle_new_user () 
+returns trigger as $$ 
+begin 
+insert into public . profiles ( id , nom , role ) 
+values ( new . id , coalesce ( new . raw_user_meta_data - > >’nom ’, ’Invite ’) , ’ PUBLIC ’) ; 
+return new ; 
+end ; 
+$$ language plpgsql security definer ; 
+create trigger on_auth_user_created 
+after insert on auth . users 
+for each row execute function public . handle_new_user () ;
+
+Après ce trigger, supprimez le .from("profiles").insert(...) dans Auth.jsx : Post greSQL s’en charge tout seul, dans la même transaction que le signup. Impossible d’avoir un utilisateur sans profil. 
+Sauvegardez dans supabase/migrations/004_trigger_profile.sql. C’est un exemple typique du « code métier en base » que PostgreSQL permet. 
+Lab 5 — Terminé ✓ 
+Vous avez créé un projet Supabase, écrit un schéma SQL, 
+configuré Row Level Security, connecté le SDK depuis React, 
+et fait fonctionner un cycle complet signup / login / logout. 
+Prochaine étape : Lab 6 — CRUD Supabase depuis React. 
+Tag posé : v0.5-supabase
+
+Dr. El Hadji Bassirou TOURE 18 2025–2026
+DAWM — Développement d’Applications Web & Mobile 
+Master 1 RETEL — 2025-2026 
+Lab 5 
+Supabase 
+projet, schéma SQL, auth 
+Un backend sans backend à coder 
+Durée 3 heures (1 séance) 
+Bloc Backend (1 / 2) 
+Tag de sortie v0.5-supabase 
+Compétence visée Projet Supabase, schéma SQL, RLS, client JS, auth signup/login F5 ne perdra plus jamais rien.
+Point clé — Informations pratiques 
+Durée estimée 3 heures (1 séance complète) 
+Prérequis Lab 4 terminé (tag v0.4-spa posé). La SPA à 3 routes fonctionne. Un compte GitHub est nécessaire pour créer un projet Supabase 
+(auth via GitHub recommandée). 
+Point de départ La branche main après merge du Lab 4. 
+Livrables Un projet Supabase créé, 3 tables SQL en place (profiles, evenements, inscriptions), les 5 événements seed insérés, les po 
+litiques RLS configurées, le client @supabase/supabase-js confi 
+guré côté React, un écran d’inscription et de connexion fonctionnel. 
+Tag de sortie v0.5-supabase posé par le Git master sur main. Git master Mansour (dernier lab de son mandat 3–5, Khady prend le relais au Lab 6). 
+Ce que vous gagnez — Ce que vous allez maîtriser 
+1. Créer un projet Supabase depuis le dashboard et repérer les 3 services qu’on utilise : Auth, PostgreSQL, Storage. 
+2. Écrire un schéma SQL avec clés primaires, clés étrangères, contraintes de type et valeurs par défaut. 
+3. Comprendre et configurer Row Level Security (RLS) — la sécurité écrite en base, pas dans le code. 
+4. Écrire des politiques RLS pour les cas classiques : lecture publique, écriture authen tifiée, modification par le propriétaire seulement. 
+5. Insérer des données seed via le SQL Editor de Supabase. 
+6. Installer @supabase/supabase-js et configurer un client depuis les variables d’envi ronnement de Vite. 
+7. Ne jamais committer un fichier .env : c’est un réflexe DevOps qu’on installe ici. 8. Implémenter un écran d’authentification avec signUp, signInWithPassword, signOut. 
+9. Écouter les changements de session avec onAuthStateChange et exposer l’utilisateur connecté au reste de l’application. 
+Table des matières 
+1 Pourquoi ce lab ? 3 
+2 Étape 0 — Création du projet Supabase 4 2.1 Créer le compte et le projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4 2.2 Récupérer les identifiants du projet . . . . . . . . . . . . . . . . . . . . . . . . . . 5 
+3 Étape 1 — Le schéma SQL 5 3.1 Table profiles . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5 3.2 Table evenements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6 3.3 Table inscriptions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6 3.4 Vérification . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+4 Étape 2 — Row Level Security 7 4.1 Activer RLS sur chaque table . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7 4.2 Politiques pour evenements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7 4.3 Politiques pour profiles et inscriptions . . . . . . . . . . . . . . . . . . . . . 8 
+5 Étape 3 — Insérer les 5 événements seed 9 
+6 Étape 4 — Configurer le client Supabase dans React 9 6.1 Installer le SDK . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9 6.2 Le fichier .env.local . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9 6.3 Le client Supabase . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10 
+7 Étape 5 — Authentification signup / login 10 7.1 Le composant Auth . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10 7.2 Gérer la session dans App . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12 7.3 Adapter la NavBar . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 7.4 Tester le parcours d’auth complet . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 
+8 Aide-mémoire 16 
+9 Validation du Lab 5 16 9.1 Checklist . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16 9.2 Vérification côté enseignant (Git uniquement) . . . . . . . . . . . . . . . . . . . . 17 9.3 Découpage en sous-tâches pour l’équipe . . . . . . . . . . . . . . . . . . . . . . . 17 9.4 Tag de fin de lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 9.5 Vers le Lab 6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 
+Dr. El Hadji Bassirou TOURE 2 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+1 Pourquoi ce lab ? 
+Rappelez-vous la limite du Lab 4 : les événements créés par le formulaire vivent dans un useState d’App.jsx. Un F5, et tout disparaît. Le mock JSON evenements.json n’est pas mo difiable depuis le navigateur, et personne ne peut se connecter à quoi que ce soit puisqu’il n’y a pas de comptes utilisateurs. 
+Ce lab installe l’infrastructure qui résout tout ça d’un coup : Supabase. Concept — BaaS : Backend-as-a-Service 
+Supabase est un Backend-as-a-Service : il fournit tout ce qu’un backend traditionnel ap porte — base de données PostgreSQL, authentification, stockage de fichiers, API REST auto-générée — sans qu’on ait à écrire une seule ligne de code serveur. 
+Concrètement : au lieu d’écrire un serveur Express ou Django qui expose des routes /api/evenements, on déclare des tables SQL et Supabase génère l’API automatique ment. La sécurité se fait en base de données avec Row Level Security, pas dans des middlewares Node. 
+Alternative libre à Firebase, open source, hébergement managé gratuit jusqu’à un certain volume, ou auto-hébergeable. 
+Intuition — L’idée-clé : la sécurité vit en base 
+Dans un backend traditionnel, quand un utilisateur tape « cette page », le code serveur vérifie l’authentification, filtre les données selon les droits, retourne un JSON. Toute la sécurité est dans le code applicatif. 
+Avec Supabase, l’API est publique : n’importe qui peut appeler SELECT * FROM evenements. Ce qui protège les données, ce sont les politiques RLS attachées à la table : « cet utilisateur ne peut voir que les événements où organisateur_id = auth.uid() ». La règle est écrite en SQL, testée en base, appliquée par PostgreSQL lui-même. Le code React ne peut pas la contourner. 
+C’est un changement de mentalité : quand on écrit du code React qui appelle Supabase, on n’a jamais à vérifier les droits soi-même. On écrit la requête souhaitée, PostgreSQL applique les règles. 
+Dr. El Hadji Bassirou TOURE 3 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Le schema SenEvent dans Supabase 
+Trois tables, des relations claires, une securite ecrite en base (RLS) 
+SUPABASE (BaaS) 
+auth.users 
+(fournie par Supabase) 
+PK id (uuid) 
+email 
+encrypted_password created_at 
+1..1 
+organise 
+public.profiles 
+PK, FK id (uuid) 
+nom (text) 
+telephone (text) 
+role (text) 
+= PUBLIC | ORGANISATEUR 
+public.evenements 
+PK id (bigint, auto) 
+titre (text, not null) 
+categorie (text) 
+lieu_nom (text) 
+date_debut (timestamptz) 
+s'inscrit 
+| ADMIN 
+created_at 
+RLS : lecture publique, 
+update uniquement soi-meme 
+public.inscriptions 
+prix (integer, default 0) 
+FK organisateur_id (uuid) 
+RLS : lecture publique, INSERT si auth, UPDATE/DELETE si owner a 
+Auth 
+signup / login / session (Lab 5) 
+PK id (bigint) FK evenement_id FK utilisateur_id RLS : lecture publique, INSERT si auth, DELETE si owner. UNIQUE(evenement_id, utilisateur_id). 
+Les 3 services Supabase qu'on utilise dans le cours 
+PostgreSQL 
+SELECT / INSERT / UPDATE / DELETE (Lab 6) 
+Storage 
+images d'evenements (Lab 6) 
+Figure 1 – Le schéma cible du projet SénEvent. Trois tables applicatives (profiles, evenements, inscriptions) reliées à la table auth.users fournie par Supabase. Chaque table porte ses propres politiques RLS. Les trois services utilisés au cours du semestre : Auth (Lab 5), PostgreSQL (Lab 6), Storage (Lab 6). 
+2 Étape 0 — Création du projet Supabase 
+2.1 Créer le compte et le projet 
+Rendez-vous sur https://supabase.com. Cliquez « Start your project », puis authentifiez vous avec votre compte GitHub. C’est le plus simple et ça évite un mot de passe supplémen taire à retenir. 
+Une fois connecté, sur le dashboard : 
+1. Cliquez New project. 
+2. Organization : choisissez la vôtre (créée automatiquement à l’inscription). 3. Name : senevent-equipe-X (adaptez avec le numéro de votre équipe). 4. Database password : générez-en un fort. Notez-le dans le canal privé de l’équipe — on n’en aura pas besoin souvent, mais on ne le retrouve pas si on l’oublie. 
+5. Region : choisissez West EU (London) ou Central EU (Frankfurt) — la plus proche de Dakar. 
+6. Pricing plan : Free. Suffit pour tout le cours. 
+Cliquez « Create new project ». Attendez environ 2 minutes que Supabase provisionne la base de données et les services. 
+Attention — Un seul projet Supabase par équipe 
+Un membre de l’équipe crée le projet et invite les deux autres comme membres de l’organisation Supabase (bouton « Invite » dans les paramètres de l’organisation). C’est essentiel pour que les trois puissent tester la même base et voir les mêmes données. Ne créez pas trois projets séparés : vous auriez des schémas divergents. 
+Dr. El Hadji Bassirou TOURE 4 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+2.2 Récupérer les identifiants du projet 
+Une fois le projet créé, dans le menu de gauche : Project Settings → API. Deux valeurs sont à noter : 
+Nom Description 
+Project URL https://xyz.supabase.co — l’URL de votre projet. 
+anon public Une clé publique. C’est le token qu’utilisera le client React pour parler à Supabase. Publique = peut apparaître dans le code du 
+navigateur. La RLS est ce qui empêche l’abus. 
+Gardez ces deux valeurs à portée : on s’en sert à l’Étape 4. 
+Attention — Ne pas confondre anon et service_role 
+Sur la même page, vous verrez une clé service_role. Elle a tous les droits : elle contourne RLS. Ne l’utilisez jamais dans le client React. Elle est réservée aux scripts serveur, aux migrations, aux tâches d’admin. La confondre avec la clé anon = fuite de sécurité massive. 
+3 Étape 1 — Le schéma SQL 
+Dans le menu de gauche du dashboard Supabase : SQL Editor. C’est un éditeur SQL en ligne, connecté directement à votre base PostgreSQL. 
+3.1 Table profiles 
+Cette table prolonge auth.users (fournie par Supabase) avec nos champs applicatifs : nom d’affichage, téléphone, rôle. Une ligne dans profiles pour une ligne dans auth.users, avec le même id. 
+Copiez ce SQL dans le SQL Editor et cliquez Run : 
+create table public . profiles ( 
+id uuid primary key references auth . users ( id ) on delete cascade , nom text not null , 
+telephone text , 
+role text not null default ’PUBLIC ’ 
+check ( role in (’PUBLIC ’, ’ ORGANISATEUR ’, ’ADMIN ’) ) , 
+created_at timestamptz not null default now () 
+) ;
+
+Dr. El Hadji Bassirou TOURE 5 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Point clé — Décoder ce SQL 
+Élément Signification 
+id uuid primary key Chaque ligne a un identifiant unique de type UUID. references auth.users(id) Cet id doit exister dans auth.users (clé étrangère). on delete cascade Si l’utilisateur supprime son compte, sa ligne profiles disparaît aussi. 
+check (role in ...) PostgreSQL refuse toute valeur autre que PUBLIC, ORGANISATEUR, ADMIN. 
+default now() Si on ne fournit pas la date, PostgreSQL met l’heure actuelle. 
+3.2 Table evenements 
+create table public . evenements ( 
+id bigint generated always as identity primary key , 
+titre text not null check ( char_length ( titre ) >= 3) , 
+categorie text not null 
+check ( categorie in (’concert ’,’expo ’,’conference ’,’atelier ’,’soutenance ’) ) , 
+lieu_nom text not null , 
+date_debut timestamptz not null , 
+prix integer not null default 0 check ( prix >= 0) , 
+image_url text , 
+organisateur_id uuid references public . profiles ( id ) on delete set null , created_at timestamptz not null default now () 
+) ;
+
+Concept — generated always as identity : le remplaçant de serial 
+En PostgreSQL moderne, generated always as identity est la façon standard de créer une clé primaire auto-incrémentée. C’est équivalent au vieux serial, mais plus explicite : PostgreSQL fournit la valeur à chaque INSERT, vous ne pouvez pas l’écraser accidentelle ment. 
+3.3 Table inscriptions 
+create table public . inscriptions ( 
+id bigint generated always as identity primary key , 
+evenement_id bigint not null references public . evenements ( id ) on delete cascade , 
+utilisateur_id uuid not null references auth . users ( id ) on delete cascade , created_at timestamptz not null default now () , 
+unique ( evenement_id , utilisateur_id ) 
+) ;
+
+La contrainte unique (evenement_id, utilisateur_id) empêche un utilisateur de s’ins crire deux fois au même événement. C’est PostgreSQL qui garantit ça, pas le code React. 
+Dr. El Hadji Bassirou TOURE 6 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+3.4 Vérification 
+Dans le menu de gauche : Table Editor. Vous devez voir vos 3 tables sous le schéma public. Cliquez sur chacune, vérifiez les colonnes. 
+$ git checkout -b feature / lab5 - supabase 
+$ mkdir -p supabase / migrations 
+Créez le fichier supabase/migrations/001_schema.sql à la racine du repo avec le SQL ci dessus (les trois create table). C’est essentiel : le schéma vit dans Git aussi, pas seulement dans le dashboard. 
+$ git add supabase 
+$ git commit -m " schema SQL initial : profiles , evenements , inscriptions " 
+4 Étape 2 — Row Level Security 
+4.1 Activer RLS sur chaque table 
+Par défaut, dès qu’on active RLS sur une table, tout accès est refusé tant qu’aucune politique n’autorise l’action. C’est le deny-by-default. On active : 
+alter table public . profiles enable row level security ; 
+alter table public . evenements enable row level security ; 
+alter table public . inscriptions enable row level security ;
+
+Testez immédiatement dans le SQL Editor : 
+select * from public . evenements ;
+
+Vous voyez 0 lignes, alors qu’on va bientôt en insérer 5. C’est normal : RLS bloque tout tant qu’on n’a rien autorisé. 
+Attention — Piège classique : oublier RLS = fuite totale 
+Si vous laissez la RLS désactivée sur une table publique, n’importe qui peut lire, écrire, supprimer via la clé anon. C’est la fuite de données la plus fréquente sur les projets Supabase mal configurés. Réflexe : dès qu’une table est créée, activer RLS et écrire au moins une politique de lecture. 
+4.2 Politiques pour evenements 
+Quatre politiques classiques : lecture publique, insertion pour utilisateurs authentifiés, mise à jour et suppression uniquement par le propriétaire. 
+-- Tout le monde peut lire ( meme anonyme ) 
+create policy " evenements_select_public " 
+on public . evenements 
+for select 
+using ( true ) ; 
+-- Un utilisateur authentifie peut inserer , et devient organisateur create policy " evenements_insert_auth " 
+on public . evenements 
+for insert 
+to authenticated 
+with check ( organisateur_id = auth . uid () ) ; 
+Dr. El Hadji Bassirou TOURE 7 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+-- Seul l’ organisateur peut modifier son evenement 
+create policy " evenements_update_owner " 
+on public . evenements 
+for update 
+to authenticated 
+using ( organisateur_id = auth . uid () ) ; 
+-- Seul l’ organisateur peut supprimer son evenement 
+create policy " evenements_delete_owner " 
+on public . evenements 
+for delete 
+to authenticated 
+using ( organisateur_id = auth . uid () ) ; 
+Point clé — Comprendre using vs with check 
+Clause Rôle 
+using(...) Qui peut voir/modifier des lignes existantes. Appliqué avant l’opération. Ex. : « l’organisateur ne peut modifier que ses événements ». 
+with 
+check(...) 
+Quelles valeurs peut prendre une ligne insérée ou modifiée. Appliqué après. Ex. : « une insertion doit avoir organisateur_id = auth.uid() » (empêche de créer un événement au nom de quelqu’un d’autre). 
+4.3 Politiques pour profiles et inscriptions 
+-- profiles : lecture publique 
+create policy " profiles_select_public " 
+on public . profiles for select using ( true ) ; 
+-- profiles : un utilisateur peut inserer / modifier UNIQUEMENT sa propre ligne create policy " profiles_insert_self " 
+on public . profiles for insert to authenticated 
+with check ( id = auth . uid () ) ; 
+create policy " profiles_update_self " 
+on public . profiles for update to authenticated 
+using ( id = auth . uid () ) ; 
+-- inscriptions : lecture publique 
+create policy " inscriptions_select_public " 
+on public . inscriptions for select using ( true ) ; 
+-- inscriptions : un utilisateur ne peut s’ inscrire QUE lui - meme create policy " inscriptions_insert_self " 
+on public . inscriptions for insert to authenticated 
+with check ( utilisateur_id = auth . uid () ) ; 
+-- inscriptions : et se desinscrire uniquement de ses propres inscriptions create policy " inscriptions_delete_self " 
+on public . inscriptions for delete to authenticated 
+using ( utilisateur_id = auth . uid () ) ;
+
+Ajoutez ces politiques à supabase/migrations/002_rls.sql. 
+$ git add supabase / migrations /002 _rls . sql 
+$ git commit -m " active RLS et pose les politiques par table " Dr. El Hadji Bassirou TOURE 8 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+5 Étape 3 — Insérer les 5 événements seed 
+RLS bloque toute écriture non authentifiée. Pour insérer des données seed, on contourne temporairement RLS en tant qu’administrateur du dashboard. Dans le SQL Editor, cette requête tourne avec les droits complets : 
+insert into public . evenements ( titre , categorie , lieu_nom , date_debut , prix , image_url ) 
+values 
+(’Concert acoustique de Youssou Junior ’, ’concert ’, 
+’Theatre National Daniel Sorano ’, ’2026 -06 -12 20:00:00+00 ’, 5000 , ’https :// placehold .co /400 x250 /1 a3a5c /fff ? text = Concert ’) , 
+(’Expo photo : Dakar la nuit ’, ’expo ’, 
+’Galerie le Manege ’, ’2026 -06 -15 18:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 / ea7d2b /fff ? text = Expo ’) , 
+(’ Conference IA et sante en Afrique ’, ’conference ’, 
+’Amphi UCAD 2’, ’2026 -06 -18 10:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 /3 aa84d /fff ? text = Conf ’) , 
+(’Atelier batik traditionnel ’, ’atelier ’, 
+’Village Artisanal Soumbedioune ’, ’2026 -06 -22 14:00:00+00 ’, 3000 , ’https :// placehold .co /400 x250 / cc1f1f /fff ? text = Atelier ’) , 
+(’ Soutenance publique : energies renouvelables ’, ’soutenance ’, ’ESP - UCAD ’, ’2026 -06 -25 09:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 /8 a6d10 /fff ? text = These ’) ;
+
+Cliquez Run. Puis : 
+select id , titre , categorie from public . evenements order by id ;
+
+Vous devez voir vos 5 lignes. Enregistrez ce SQL dans supabase/migrations/003_seed.sql. 
+$ git add supabase / migrations /003 _seed . sql 
+$ git commit -m " seed 5 evenements initiaux " 
+6 Étape 4 — Configurer le client Supabase dans React 6.1 Installer le SDK 
+$ cd apps / web 
+$ npm install @supabase / supabase - js 
+6.2 Le fichier .env.local 
+Vite lit automatiquement un fichier .env.local à la racine du projet. Toute variable préfixée par VITE_ est exposée au code client (accessible via import.meta.env.VITE_XXX). Créez apps/web/.env.local : 
+VITE_SUPABASE_URL = https :// xyz . supabase . co 
+VITE_SUPABASE_ANON_KEY = eyJhbG ... votre - cle - anon ... 
+Remplacez par les valeurs récupérées à l’Étape 0. 
+Dr. El Hadji Bassirou TOURE 9 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Attention — NE COMMITEZ JAMAIS .env.local 
+Ce fichier contient des identifiants qui, même publics (clé anon), ne doivent pas trainer dans l’historique Git. Vérifiez que .gitignore à la racine du repo contient bien .env*.local. Si ce n’est pas déjà le cas : 
+$ echo "" >> . gitignore 
+$ echo "# Variables d ’ environnement locales " >> . gitignore 
+$ echo ". env . local " >> . gitignore 
+$ echo ". env *. local " >> . gitignore 
+$ git add . gitignore 
+$ git commit -m " ignore les fichiers . env locaux " 
+Vérifiez avec git status : .env.local ne doit jamais apparaître. 
+6.3 Le client Supabase 
+Créez apps/web/src/lib/supabase.js : 
+import { createClient } from " @supabase / supabase -js"; 
+const url = import . meta . env . VITE_SUPABASE_URL ; 
+const anonKey = import . meta . env . VITE_SUPABASE_ANON_KEY ; 
+if (! url || ! anonKey ) { 
+throw new Error ( 
+" Variables Supabase manquantes . Verifiez apps / web /. env. local " ) ; 
+} 
+export const supabase = createClient ( url , anonKey ) ;
+
+Concept — Un seul client Supabase par app 
+Le createClient configure un client avec la persistance de session, l’écoute des change ments d’auth, la connexion realtime. Créer plusieurs clients dans une même application créerait des désynchronisations. On l’exporte une fois depuis lib/supabase.js et on l’importe partout où on en a besoin. 
+Test rapide dans la console du navigateur (ouvrez http://localhost:5173, F12 → Console) : 
+// Dans la console du navigateur 
+import ("./ src/lib / supabase .js") . then ( m => 
+m . supabase . from (" evenements ") . select ("id , titre ") . then ( console . log ) ) ;
+
+Vous devez voir un objet { data: [ ...5 evenements... ], error: null }. Si vous voyez data: [], c’est que RLS n’a pas de politique select ouverte. 
+$ git add apps / web / src / lib apps / web / package . json apps / web / package - lock . json $ git commit -m " installe @supabase / supabase - js et configure le client " 
+7 Étape 5 — Authentification signup / login 
+7.1 Le composant Auth 
+Créez apps/web/src/pages/Auth.jsx : 
+Dr. El Hadji Bassirou TOURE 10 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+import { useState } from " react "; 
+import { supabase } from "../ lib/ supabase "; 
+import { useNavigate } from "react - router -dom"; 
+import styles from "./ Auth . module .css"; 
+const Auth = () = > { 
+const [ mode , setMode ] = useState (" login ") ; // " login " | " signup " const [ email , setEmail ] = useState ("") ; 
+const [ motDePasse , setMotDePasse ] = useState ("") ; 
+const [ nom , setNom ] = useState ("") ; 
+const [ erreur , setErreur ] = useState ( null ) ; 
+const [ enCours , setEnCours ] = useState ( false ) ; 
+const navigate = useNavigate () ; 
+const soumettre = async ( event ) = > { 
+event . preventDefault () ; 
+setErreur ( null ) ; 
+setEnCours ( true ) ; 
+try { 
+if ( mode === " signup ") { 
+const { data , error } = await supabase . auth . signUp ({ 
+email , 
+password : motDePasse , 
+}) ; 
+if ( error ) throw error ; 
+// Creer la ligne profile associee 
+if ( data . user ) { 
+const { error : e2 } = await supabase 
+. from (" profiles ") 
+. insert ({ id : data . user . id , nom , role : " PUBLIC " }) ; 
+if ( e2 ) throw e2 ; 
+} 
+} else { 
+const { error } = await supabase . auth . signInWithPassword ({ 
+email , 
+password : motDePasse , 
+}) ; 
+if ( error ) throw error ; 
+} 
+navigate ("/") ; 
+} catch ( e ) { 
+setErreur ( e . message ) ; 
+} finally { 
+setEnCours ( false ) ; 
+} 
+}; 
+return ( 
+< form className ={ styles . form } onSubmit ={ soumettre } > 
+<h2 >{ mode === " signup " ? " Creer un compte " : "Se connecter "} </ h2 > 
+{ mode === " signup " && ( 
+< label className ={ styles . champ } > 
+Nom d’affichage 
+<input 
+type =" text " 
+value ={ nom} 
+onChange ={e = > setNom (e. target . value )} 
+required 
+/ > 
+Dr. El Hadji Bassirou TOURE 11 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+</label > 
+)} 
+<label className ={ styles . champ } > 
+Email 
+<input 
+type =" email " 
+value ={ email } 
+onChange ={e = > setEmail (e. target . value )} 
+required 
+/ > 
+</label > 
+<label className ={ styles . champ } > 
+Mot de passe 
+<input 
+type =" password " 
+value ={ motDePasse } 
+onChange ={e = > setMotDePasse (e. target . value )} 
+minLength ="6" 
+required 
+/ > 
+</label > 
+{ erreur && <p className ={ styles . erreur } >{ erreur } </p >} 
+<button type =" submit " disabled ={ enCours } className ={ styles . bouton } > { enCours 
+? "..." 
+: mode === " signup " ? " Creer le compte " : "Se connecter "} 
+</ button > 
+<button 
+type =" button " 
+onClick ={() = > setMode ( mode === " signup " ? " login " : " signup ")} className ={ styles . basculer } 
+> 
+{ mode === " signup " 
+? " Deja un compte ? Se connecter " 
+: "Pas encore de compte ? Creer "} 
+</ button > 
+</form > 
+); 
+}; 
+export default Auth ; 
+Créez le CSS apps/web/src/pages/Auth.module.css en reprenant les mêmes styles que NouvelEvenement.module.css du Lab 4 (mêmes conventions). 
+7.2 Gérer la session dans App 
+Modifiez apps/web/src/App.jsx pour écouter la session de l’utilisateur connecté : 
+import { useState , useEffect } from " react "; 
+import { BrowserRouter , Routes , Route } from "react - router -dom"; import { supabase } from "./ lib / supabase "; 
+import Accueil from "./ pages / Accueil "; 
+import NouvelEvenement from "./ pages / NouvelEvenement "; 
+import Detail from "./ pages / Detail "; 
+import Auth from "./ pages / Auth "; 
+import NavBar from "./ components / NavBar "; 
+Dr. El Hadji Bassirou TOURE 12 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+const App = () = > { 
+const [ evenements , setEvenements ] = useState ([]) ; 
+const [ chargement , setChargement ] = useState ( true ) ; 
+const [ erreur , setErreur ] = useState ( null ) ; 
+const [ session , setSession ] = useState ( null ) ; 
+useEffect (() = > { 
+// Recuperer la session actuelle au montage 
+supabase . auth . getSession () . then (({ data }) = > { 
+setSession ( data . session ) ; 
+}) ; 
+// Ecouter tout changement de session (login , logout , refresh ) const { data : subscription } = supabase . auth . onAuthStateChange ( ( _event , newSession ) = > { 
+setSession ( newSession ) ; 
+} 
+) ; 
+return () = > subscription . subscription . unsubscribe () ; 
+} , []) ; 
+// La fonction charger () du Lab 3 reste pour l’instant , on l’adaptera au Lab 6 
+const charger = async () = > { 
+setChargement ( true ) ; 
+setErreur ( null ) ; 
+try { 
+const reponse = await fetch ("/ evenements . json ") ; 
+if (! reponse . ok ) throw new Error (‘Erreur HTTP ${ reponse . status }‘) ; const data = await reponse . json () ; 
+setEvenements ( data ) ; 
+} catch ( e ) { 
+setErreur ( e . message ) ; 
+} finally { 
+setChargement ( false ) ; 
+} 
+}; 
+useEffect (() = > { charger () ; } , []) ; 
+const ajouterEvenement = ( nouvel ) = > { 
+setEvenements ( precedents = > [ nouvel , ... precedents ]) ; 
+}; 
+return ( 
+< BrowserRouter > 
+< NavBar session ={ session } / > 
+< Routes > 
+< Route path ="/" element ={ < Accueil evenements ={ evenements } 
+chargement ={ chargement } 
+erreur ={ erreur } 
+onReessayer ={ charger } / >} / > 
+< Route path ="/ nouveau " element ={ < NouvelEvenement 
+onAjouter ={ ajouterEvenement } / >} / > 
+< Route path ="/ evenement /: id" element ={ < Detail evenements ={ evenements } / >} / > 
+< Route path ="/ auth " element ={ < Auth / >} / > 
+</ Routes > 
+</ BrowserRouter > 
+) ; 
+}; 
+Dr. El Hadji Bassirou TOURE 13 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+export default App ; 
+Point clé — Le pattern session Supabase 
+1. Au montage, supabase.auth.getSession() lit la session en cache (dans le localSto rage). 
+2. onAuthStateChange enregistre un écouteur : à chaque login/logout/refresh de token, on met à jour l’état session. 
+3. La fonction retournée par useEffect désabonne l’écouteur au démontage — exactement le pattern de nettoyage vu au bonus du Lab 3. 
+Résultat : n’importe où dans l’application, la valeur session reflète en temps réel l’état d’auth. Si l’utilisateur ferme un autre onglet et se déconnecte, cet onglet-ci le voit tout de suite. 
+7.3 Adapter la NavBar 
+Modifiez apps/web/src/components/NavBar.jsx pour afficher les liens différemment selon session : 
+import { NavLink } from "react -router -dom"; 
+import { supabase } from "../ lib/ supabase "; 
+import styles from "./ NavBar . module . css"; 
+const NavBar = ({ session }) = > { 
+const lienActif = ({ isActive }) = > 
+isActive ? ‘${ styles . lien } ${ styles . lienActif }‘ : styles . lien ; 
+const seDeconnecter = async () = > { 
+await supabase . auth . signOut () ; 
+}; 
+return ( 
+< nav className ={ styles . nav } > 
+< div className ={ styles . logo } > SenEvent </ div > 
+< div className ={ styles . liens } > 
+< NavLink to ="/" end className ={ lienActif } > Accueil </ NavLink > 
+{ session && ( 
+< NavLink to ="/ nouveau " className ={ lienActif } > Nouvel 
+evenement </ NavLink > 
+) } 
+{ session ? ( 
+<> 
+< span className ={ styles . email } >{ session . user . email } </ span > 
+< button onClick ={ seDeconnecter } className ={ styles . deconnexion } > Se deconnecter 
+</ button > 
+</> 
+) : ( 
+< NavLink to ="/ auth " className ={ lienActif } > Se connecter </ NavLink > ) } 
+</ div > 
+</ nav > 
+) ; 
+}; 
+export default NavBar ;
+
+Ajoutez les 2 nouveaux styles à NavBar.module.css : 
+Dr. El Hadji Bassirou TOURE 14 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+. email { 
+color : # a8c5e0 ; 
+font - size : 0.9 rem ; 
+} 
+. deconnexion { 
+background : transparent ; 
+border : 1 px solid # ea7d2b ; 
+color : # ea7d2b ; 
+padding : 0.3 rem 0.8 rem ; 
+border - radius : 4 px ; 
+cursor : pointer ; 
+} 
+. deconnexion : hover { 
+background : # ea7d2b ; 
+color : white ; 
+} 
+7.4 Tester le parcours d’auth complet 
+Rafraîchissez la page. Vous devez voir « Se connecter » dans la NavBar. Puis : 1. Cliquez « Se connecter ». La page /auth s’affiche. 
+2. Basculez sur « Créer un compte ». Saisissez nom, email, mot de passe (6 caractères min). Cliquez « Créer le compte ». 
+3. Vérifiez votre boîte mail : Supabase envoie un lien de confirmation par défaut. Cliquez dessus. Vous êtes redirigé vers l’application. 
+4. La NavBar affiche maintenant votre email et un bouton « Se deconnecter ». Le lien « Nouvel événement » apparaît (visible seulement si connecté). 
+5. Cliquez « Se deconnecter ». Retour à l’état non connecté. 
+Dans le dashboard Supabase : Authentication → Users. Votre utilisateur y apparaît. Table Editor → profiles. Une ligne avec votre id, nom, rôle PUBLIC. 
+Attention — Confirmation d’email en développement 
+En dev, la confirmation par email peut ralentir les tests. Dans Authentication → Provi ders → Email, désactivez temporairement Confirm email. Réactivez avant la production. 
+$ git commit - am " auth Supabase : signup , login , deconnexion , NavBar contextuelle " 
+Dr. El Hadji Bassirou TOURE 15 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 8 Aide-mémoire 
+Concept Syntaxe / exemple 
+Créer table SQL create table public.x (id ... primary key, ...); 
+Clé étrangère references public.y(id) on delete cascade Contrainte de valeur check (col in (’A’,’B’,’C’)) 
+Auto-incrément bigint generated always as identity 
+Activer RLS alter table public.x enable row level security; 
+Politique SELECT public create policy ... for select using (true); Politique par owner ... using (col = auth.uid()) 
+Récupérer l’user auth.uid() en SQL, supabase.auth.getUser() en JS 
+Installer le SDK npm install @supabase/supabase-js 
+Créer le client createClient(url, anonKey) dans lib/supabase.js 
+Variables Vite import.meta.env.VITE_XXX 
+Ignorer les env .env.local dans .gitignore 
+Signup supabase.auth.signUp({ email, password }) Login supabase.auth.signInWithPassword({ email, password }) 
+Session supabase.auth.getSession() 
+Écouter session supabase.auth.onAuthStateChange((e, s) => ...) 
+Logout supabase.auth.signOut() 
+Commit Git git commit -m "ajoute schema supabase + rls" Tag du lab git tag -a v0.5-supabase 
+9 Validation du Lab 5 
+9.1 Checklist 
+✓ Un projet Supabase existe, les 3 membres de l’équipe y sont invités 
+✓ Les 3 tables profiles, evenements, inscriptions sont visibles dans le Table Editor ✓ RLS est activée sur les 3 tables (pastille verte « RLS enabled » dans le Table Editor) ✓ Les politiques SELECT publiques permettent au client non authentifié de lire les 5 événements ✓ Les 5 événements seed sont dans public.evenements 
+✓ Le repo contient supabase/migrations/ avec 3 fichiers SQL (001_schema.sql, 002_rls.sql, 003_seed.sql) 
+✓ apps/web/.env.local existe localement et est ignoré par Git 
+✓ Créer un compte via l’app fait apparaître un utilisateur dans Auth et une ligne dans profiles Dr. El Hadji Bassirou TOURE 16 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+✓ La NavBar affiche l’email et le bouton « Se deconnecter » quand connecté ✓ Le tag v0.5-supabase est posé sur main 
+9.2 Vérification côté enseignant (Git uniquement) 
+$ git shortlog - sne v0 .4 - spa .. v0 .5 - supabase 
+$ git log v0 .4 - spa .. v0 .5 - supabase -- oneline 
+$ ls supabase / migrations / 
+$ git ls - files | grep -c "\. env " # doit retourner 0 
+$ grep -l " createClient \| supabase . auth " apps / web / src /**/*. js * 
+Un .env.local committé (résultat non-zéro à la 4e commande) = drapeau rouge et perte de points. 
+9.3 Découpage en sous-tâches pour l’équipe 
+À faire — Trois sous-tâches équivalentes — Mansour Git master, dernier lab de son mandat 
+— Sous-tâche A — Atou : créer le projet Supabase, inviter les 2 autres membres, écrire et exécuter les 3 create table (Étape 1), insérer les 5 événements seed (Étape 3), commit des 3 fichiers SQL dans supabase/migrations/. 
+— Sous-tâche B — Mansour (Git master) : écrire et poser toutes les politiques RLS (Étape 2), tester en SQL Editor que les lectures/écritures se comportent comme attendu, installer @supabase/supabase-js, créer lib/supabase.js et .env.local (Étape 4), vérifier que .gitignore bloque bien les env, coordonner les merges. 
+— Sous-tâche C — Khady : créer la page Auth.jsx + son CSS Module (Étape 5, début), gérer la session dans App.jsx (onAuthStateChange), adapter la NavBar pour montrer email/déconnexion (Étape 5, fin). 
+Ordre de merge obligatoire : A doit être mergé avant B (RLS a besoin des tables), et B avant C (le composant Auth a besoin du client Supabase configuré). Séquentiel, pas parallèle. 
+9.4 Tag de fin de lab 
+$ git checkout main 
+$ git pull origin main 
+$ git tag -a v0 .5 - supabase -m " Lab 5 termine : Supabase + schema + RLS + auth " $ git push origin v0 .5 - supabase 
+9.5 Vers le Lab 6 
+Ce que vous gagnez — Limite actuelle, qui ouvre le Lab 6 
+Aujourd’hui, l’application est à moitié branchée sur Supabase : 
+— L’auth passe par Supabase — login, session, déconnexion. 
+— Les événements viennent encore du mock JSON — rien n’a changé côté catalogue. Au Lab 6, on remplace fetch("/evenements.json") par supabase.from(’evenements’).select(). Le formulaire NouvelEvenement fait un vrai INSERT. Le bouton d’inscription à un événement fait un INSERT dans inscriptions. 
+Dr. El Hadji Bassirou TOURE 17 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Ajout d’un upload d’image via Supabase Storage. La persistance devient réelle : F5 ne perd plus rien. 
+Khady prend le mandat Git master pour les Labs 6–8. 
+Exercice bonus — Pour ceux qui terminent en avance 
+Intuition — Bonus : un trigger SQL pour créer le profil automatiquement 
+Aujourd’hui, à l’inscription, on fait deux appels : signUp puis insert dans profiles. Si le premier réussit mais le second échoue (bug réseau, RLS mal configurée), on se retrouve avec un utilisateur sans profil. 
+Le bon pattern PostgreSQL : un trigger qui crée automatiquement la ligne profiles quand un utilisateur est ajouté à auth.users. 
+create or replace function public . handle_new_user () 
+returns trigger as $$ 
+begin 
+insert into public . profiles ( id , nom , role ) 
+values ( new . id , coalesce ( new . raw_user_meta_data - > >’nom ’, ’Invite ’) , ’ PUBLIC ’) ; 
+return new ; 
+end ; 
+$$ language plpgsql security definer ; 
+create trigger on_auth_user_created 
+after insert on auth . users 
+for each row execute function public . handle_new_user () ;
+
+Après ce trigger, supprimez le .from("profiles").insert(...) dans Auth.jsx : Post greSQL s’en charge tout seul, dans la même transaction que le signup. Impossible d’avoir un utilisateur sans profil. 
+Sauvegardez dans supabase/migrations/004_trigger_profile.sql. C’est un exemple typique du « code métier en base » que PostgreSQL permet. 
+Lab 5 — Terminé ✓ 
+Vous avez créé un projet Supabase, écrit un schéma SQL, 
+configuré Row Level Security, connecté le SDK depuis React, 
+et fait fonctionner un cycle complet signup / login / logout. 
+Prochaine étape : Lab 6 — CRUD Supabase depuis React. 
+Tag posé : v0.5-supabase
+
+Dr. El Hadji Bassirou TOURE 18 2025–2026
+DAWM — Développement d’Applications Web & Mobile 
+Master 1 RETEL — 2025-2026 
+Lab 5 
+Supabase 
+projet, schéma SQL, auth 
+Un backend sans backend à coder 
+Durée 3 heures (1 séance) 
+Bloc Backend (1 / 2) 
+Tag de sortie v0.5-supabase 
+Compétence visée Projet Supabase, schéma SQL, RLS, client JS, auth signup/login F5 ne perdra plus jamais rien.
+Point clé — Informations pratiques 
+Durée estimée 3 heures (1 séance complète) 
+Prérequis Lab 4 terminé (tag v0.4-spa posé). La SPA à 3 routes fonctionne. Un compte GitHub est nécessaire pour créer un projet Supabase 
+(auth via GitHub recommandée). 
+Point de départ La branche main après merge du Lab 4. 
+Livrables Un projet Supabase créé, 3 tables SQL en place (profiles, evenements, inscriptions), les 5 événements seed insérés, les po 
+litiques RLS configurées, le client @supabase/supabase-js confi 
+guré côté React, un écran d’inscription et de connexion fonctionnel. 
+Tag de sortie v0.5-supabase posé par le Git master sur main. Git master Mansour (dernier lab de son mandat 3–5, Khady prend le relais au Lab 6). 
+Ce que vous gagnez — Ce que vous allez maîtriser 
+1. Créer un projet Supabase depuis le dashboard et repérer les 3 services qu’on utilise : Auth, PostgreSQL, Storage. 
+2. Écrire un schéma SQL avec clés primaires, clés étrangères, contraintes de type et valeurs par défaut. 
+3. Comprendre et configurer Row Level Security (RLS) — la sécurité écrite en base, pas dans le code. 
+4. Écrire des politiques RLS pour les cas classiques : lecture publique, écriture authen tifiée, modification par le propriétaire seulement. 
+5. Insérer des données seed via le SQL Editor de Supabase. 
+6. Installer @supabase/supabase-js et configurer un client depuis les variables d’envi ronnement de Vite. 
+7. Ne jamais committer un fichier .env : c’est un réflexe DevOps qu’on installe ici. 8. Implémenter un écran d’authentification avec signUp, signInWithPassword, signOut. 
+9. Écouter les changements de session avec onAuthStateChange et exposer l’utilisateur connecté au reste de l’application. 
+Table des matières 
+1 Pourquoi ce lab ? 3 
+2 Étape 0 — Création du projet Supabase 4 2.1 Créer le compte et le projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4 2.2 Récupérer les identifiants du projet . . . . . . . . . . . . . . . . . . . . . . . . . . 5 
+3 Étape 1 — Le schéma SQL 5 3.1 Table profiles . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5 3.2 Table evenements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6 3.3 Table inscriptions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6 3.4 Vérification . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+4 Étape 2 — Row Level Security 7 4.1 Activer RLS sur chaque table . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7 4.2 Politiques pour evenements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7 4.3 Politiques pour profiles et inscriptions . . . . . . . . . . . . . . . . . . . . . 8 
+5 Étape 3 — Insérer les 5 événements seed 9 
+6 Étape 4 — Configurer le client Supabase dans React 9 6.1 Installer le SDK . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9 6.2 Le fichier .env.local . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9 6.3 Le client Supabase . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10 
+7 Étape 5 — Authentification signup / login 10 7.1 Le composant Auth . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10 7.2 Gérer la session dans App . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12 7.3 Adapter la NavBar . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 7.4 Tester le parcours d’auth complet . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 
+8 Aide-mémoire 16 
+9 Validation du Lab 5 16 9.1 Checklist . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16 9.2 Vérification côté enseignant (Git uniquement) . . . . . . . . . . . . . . . . . . . . 17 9.3 Découpage en sous-tâches pour l’équipe . . . . . . . . . . . . . . . . . . . . . . . 17 9.4 Tag de fin de lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 9.5 Vers le Lab 6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 
+Dr. El Hadji Bassirou TOURE 2 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+1 Pourquoi ce lab ? 
+Rappelez-vous la limite du Lab 4 : les événements créés par le formulaire vivent dans un useState d’App.jsx. Un F5, et tout disparaît. Le mock JSON evenements.json n’est pas mo difiable depuis le navigateur, et personne ne peut se connecter à quoi que ce soit puisqu’il n’y a pas de comptes utilisateurs. 
+Ce lab installe l’infrastructure qui résout tout ça d’un coup : Supabase. Concept — BaaS : Backend-as-a-Service 
+Supabase est un Backend-as-a-Service : il fournit tout ce qu’un backend traditionnel ap porte — base de données PostgreSQL, authentification, stockage de fichiers, API REST auto-générée — sans qu’on ait à écrire une seule ligne de code serveur. 
+Concrètement : au lieu d’écrire un serveur Express ou Django qui expose des routes /api/evenements, on déclare des tables SQL et Supabase génère l’API automatique ment. La sécurité se fait en base de données avec Row Level Security, pas dans des middlewares Node. 
+Alternative libre à Firebase, open source, hébergement managé gratuit jusqu’à un certain volume, ou auto-hébergeable. 
+Intuition — L’idée-clé : la sécurité vit en base 
+Dans un backend traditionnel, quand un utilisateur tape « cette page », le code serveur vérifie l’authentification, filtre les données selon les droits, retourne un JSON. Toute la sécurité est dans le code applicatif. 
+Avec Supabase, l’API est publique : n’importe qui peut appeler SELECT * FROM evenements. Ce qui protège les données, ce sont les politiques RLS attachées à la table : « cet utilisateur ne peut voir que les événements où organisateur_id = auth.uid() ». La règle est écrite en SQL, testée en base, appliquée par PostgreSQL lui-même. Le code React ne peut pas la contourner. 
+C’est un changement de mentalité : quand on écrit du code React qui appelle Supabase, on n’a jamais à vérifier les droits soi-même. On écrit la requête souhaitée, PostgreSQL applique les règles. 
+Dr. El Hadji Bassirou TOURE 3 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Le schema SenEvent dans Supabase 
+Trois tables, des relations claires, une securite ecrite en base (RLS) 
+SUPABASE (BaaS) 
+auth.users 
+(fournie par Supabase) 
+PK id (uuid) 
+email 
+encrypted_password created_at 
+1..1 
+organise 
+public.profiles 
+PK, FK id (uuid) 
+nom (text) 
+telephone (text) 
+role (text) 
+= PUBLIC | ORGANISATEUR 
+public.evenements 
+PK id (bigint, auto) 
+titre (text, not null) 
+categorie (text) 
+lieu_nom (text) 
+date_debut (timestamptz) 
+s'inscrit 
+| ADMIN 
+created_at 
+RLS : lecture publique, 
+update uniquement soi-meme 
+public.inscriptions 
+prix (integer, default 0) 
+FK organisateur_id (uuid) 
+RLS : lecture publique, INSERT si auth, UPDATE/DELETE si owner a 
+Auth 
+signup / login / session (Lab 5) 
+PK id (bigint) FK evenement_id FK utilisateur_id RLS : lecture publique, INSERT si auth, DELETE si owner. UNIQUE(evenement_id, utilisateur_id). 
+Les 3 services Supabase qu'on utilise dans le cours 
+PostgreSQL 
+SELECT / INSERT / UPDATE / DELETE (Lab 6) 
+Storage 
+images d'evenements (Lab 6) 
+Figure 1 – Le schéma cible du projet SénEvent. Trois tables applicatives (profiles, evenements, inscriptions) reliées à la table auth.users fournie par Supabase. Chaque table porte ses propres politiques RLS. Les trois services utilisés au cours du semestre : Auth (Lab 5), PostgreSQL (Lab 6), Storage (Lab 6). 
+2 Étape 0 — Création du projet Supabase 
+2.1 Créer le compte et le projet 
+Rendez-vous sur https://supabase.com. Cliquez « Start your project », puis authentifiez vous avec votre compte GitHub. C’est le plus simple et ça évite un mot de passe supplémen taire à retenir. 
+Une fois connecté, sur le dashboard : 
+1. Cliquez New project. 
+2. Organization : choisissez la vôtre (créée automatiquement à l’inscription). 3. Name : senevent-equipe-X (adaptez avec le numéro de votre équipe). 4. Database password : générez-en un fort. Notez-le dans le canal privé de l’équipe — on n’en aura pas besoin souvent, mais on ne le retrouve pas si on l’oublie. 
+5. Region : choisissez West EU (London) ou Central EU (Frankfurt) — la plus proche de Dakar. 
+6. Pricing plan : Free. Suffit pour tout le cours. 
+Cliquez « Create new project ». Attendez environ 2 minutes que Supabase provisionne la base de données et les services. 
+Attention — Un seul projet Supabase par équipe 
+Un membre de l’équipe crée le projet et invite les deux autres comme membres de l’organisation Supabase (bouton « Invite » dans les paramètres de l’organisation). C’est essentiel pour que les trois puissent tester la même base et voir les mêmes données. Ne créez pas trois projets séparés : vous auriez des schémas divergents. 
+Dr. El Hadji Bassirou TOURE 4 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+2.2 Récupérer les identifiants du projet 
+Une fois le projet créé, dans le menu de gauche : Project Settings → API. Deux valeurs sont à noter : 
+Nom Description 
+Project URL https://xyz.supabase.co — l’URL de votre projet. 
+anon public Une clé publique. C’est le token qu’utilisera le client React pour parler à Supabase. Publique = peut apparaître dans le code du 
+navigateur. La RLS est ce qui empêche l’abus. 
+Gardez ces deux valeurs à portée : on s’en sert à l’Étape 4. 
+Attention — Ne pas confondre anon et service_role 
+Sur la même page, vous verrez une clé service_role. Elle a tous les droits : elle contourne RLS. Ne l’utilisez jamais dans le client React. Elle est réservée aux scripts serveur, aux migrations, aux tâches d’admin. La confondre avec la clé anon = fuite de sécurité massive. 
+3 Étape 1 — Le schéma SQL 
+Dans le menu de gauche du dashboard Supabase : SQL Editor. C’est un éditeur SQL en ligne, connecté directement à votre base PostgreSQL. 
+3.1 Table profiles 
+Cette table prolonge auth.users (fournie par Supabase) avec nos champs applicatifs : nom d’affichage, téléphone, rôle. Une ligne dans profiles pour une ligne dans auth.users, avec le même id. 
+Copiez ce SQL dans le SQL Editor et cliquez Run : 
+create table public . profiles ( 
+id uuid primary key references auth . users ( id ) on delete cascade , nom text not null , 
+telephone text , 
+role text not null default ’PUBLIC ’ 
+check ( role in (’PUBLIC ’, ’ ORGANISATEUR ’, ’ADMIN ’) ) , 
+created_at timestamptz not null default now () 
+) ;
+
+Dr. El Hadji Bassirou TOURE 5 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Point clé — Décoder ce SQL 
+Élément Signification 
+id uuid primary key Chaque ligne a un identifiant unique de type UUID. references auth.users(id) Cet id doit exister dans auth.users (clé étrangère). on delete cascade Si l’utilisateur supprime son compte, sa ligne profiles disparaît aussi. 
+check (role in ...) PostgreSQL refuse toute valeur autre que PUBLIC, ORGANISATEUR, ADMIN. 
+default now() Si on ne fournit pas la date, PostgreSQL met l’heure actuelle. 
+3.2 Table evenements 
+create table public . evenements ( 
+id bigint generated always as identity primary key , 
+titre text not null check ( char_length ( titre ) >= 3) , 
+categorie text not null 
+check ( categorie in (’concert ’,’expo ’,’conference ’,’atelier ’,’soutenance ’) ) , 
+lieu_nom text not null , 
+date_debut timestamptz not null , 
+prix integer not null default 0 check ( prix >= 0) , 
+image_url text , 
+organisateur_id uuid references public . profiles ( id ) on delete set null , created_at timestamptz not null default now () 
+) ;
+
+Concept — generated always as identity : le remplaçant de serial 
+En PostgreSQL moderne, generated always as identity est la façon standard de créer une clé primaire auto-incrémentée. C’est équivalent au vieux serial, mais plus explicite : PostgreSQL fournit la valeur à chaque INSERT, vous ne pouvez pas l’écraser accidentelle ment. 
+3.3 Table inscriptions 
+create table public . inscriptions ( 
+id bigint generated always as identity primary key , 
+evenement_id bigint not null references public . evenements ( id ) on delete cascade , 
+utilisateur_id uuid not null references auth . users ( id ) on delete cascade , created_at timestamptz not null default now () , 
+unique ( evenement_id , utilisateur_id ) 
+) ;
+
+La contrainte unique (evenement_id, utilisateur_id) empêche un utilisateur de s’ins crire deux fois au même événement. C’est PostgreSQL qui garantit ça, pas le code React. 
+Dr. El Hadji Bassirou TOURE 6 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+3.4 Vérification 
+Dans le menu de gauche : Table Editor. Vous devez voir vos 3 tables sous le schéma public. Cliquez sur chacune, vérifiez les colonnes. 
+$ git checkout -b feature / lab5 - supabase 
+$ mkdir -p supabase / migrations 
+Créez le fichier supabase/migrations/001_schema.sql à la racine du repo avec le SQL ci dessus (les trois create table). C’est essentiel : le schéma vit dans Git aussi, pas seulement dans le dashboard. 
+$ git add supabase 
+$ git commit -m " schema SQL initial : profiles , evenements , inscriptions " 
+4 Étape 2 — Row Level Security 
+4.1 Activer RLS sur chaque table 
+Par défaut, dès qu’on active RLS sur une table, tout accès est refusé tant qu’aucune politique n’autorise l’action. C’est le deny-by-default. On active : 
+alter table public . profiles enable row level security ; 
+alter table public . evenements enable row level security ; 
+alter table public . inscriptions enable row level security ;
+
+Testez immédiatement dans le SQL Editor : 
+select * from public . evenements ;
+
+Vous voyez 0 lignes, alors qu’on va bientôt en insérer 5. C’est normal : RLS bloque tout tant qu’on n’a rien autorisé. 
+Attention — Piège classique : oublier RLS = fuite totale 
+Si vous laissez la RLS désactivée sur une table publique, n’importe qui peut lire, écrire, supprimer via la clé anon. C’est la fuite de données la plus fréquente sur les projets Supabase mal configurés. Réflexe : dès qu’une table est créée, activer RLS et écrire au moins une politique de lecture. 
+4.2 Politiques pour evenements 
+Quatre politiques classiques : lecture publique, insertion pour utilisateurs authentifiés, mise à jour et suppression uniquement par le propriétaire. 
+-- Tout le monde peut lire ( meme anonyme ) 
+create policy " evenements_select_public " 
+on public . evenements 
+for select 
+using ( true ) ; 
+-- Un utilisateur authentifie peut inserer , et devient organisateur create policy " evenements_insert_auth " 
+on public . evenements 
+for insert 
+to authenticated 
+with check ( organisateur_id = auth . uid () ) ; 
+Dr. El Hadji Bassirou TOURE 7 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+-- Seul l’ organisateur peut modifier son evenement 
+create policy " evenements_update_owner " 
+on public . evenements 
+for update 
+to authenticated 
+using ( organisateur_id = auth . uid () ) ; 
+-- Seul l’ organisateur peut supprimer son evenement 
+create policy " evenements_delete_owner " 
+on public . evenements 
+for delete 
+to authenticated 
+using ( organisateur_id = auth . uid () ) ; 
+Point clé — Comprendre using vs with check 
+Clause Rôle 
+using(...) Qui peut voir/modifier des lignes existantes. Appliqué avant l’opération. Ex. : « l’organisateur ne peut modifier que ses événements ». 
+with 
+check(...) 
+Quelles valeurs peut prendre une ligne insérée ou modifiée. Appliqué après. Ex. : « une insertion doit avoir organisateur_id = auth.uid() » (empêche de créer un événement au nom de quelqu’un d’autre). 
+4.3 Politiques pour profiles et inscriptions 
+-- profiles : lecture publique 
+create policy " profiles_select_public " 
+on public . profiles for select using ( true ) ; 
+-- profiles : un utilisateur peut inserer / modifier UNIQUEMENT sa propre ligne create policy " profiles_insert_self " 
+on public . profiles for insert to authenticated 
+with check ( id = auth . uid () ) ; 
+create policy " profiles_update_self " 
+on public . profiles for update to authenticated 
+using ( id = auth . uid () ) ; 
+-- inscriptions : lecture publique 
+create policy " inscriptions_select_public " 
+on public . inscriptions for select using ( true ) ; 
+-- inscriptions : un utilisateur ne peut s’ inscrire QUE lui - meme create policy " inscriptions_insert_self " 
+on public . inscriptions for insert to authenticated 
+with check ( utilisateur_id = auth . uid () ) ; 
+-- inscriptions : et se desinscrire uniquement de ses propres inscriptions create policy " inscriptions_delete_self " 
+on public . inscriptions for delete to authenticated 
+using ( utilisateur_id = auth . uid () ) ;
+
+Ajoutez ces politiques à supabase/migrations/002_rls.sql. 
+$ git add supabase / migrations /002 _rls . sql 
+$ git commit -m " active RLS et pose les politiques par table " Dr. El Hadji Bassirou TOURE 8 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+5 Étape 3 — Insérer les 5 événements seed 
+RLS bloque toute écriture non authentifiée. Pour insérer des données seed, on contourne temporairement RLS en tant qu’administrateur du dashboard. Dans le SQL Editor, cette requête tourne avec les droits complets : 
+insert into public . evenements ( titre , categorie , lieu_nom , date_debut , prix , image_url ) 
+values 
+(’Concert acoustique de Youssou Junior ’, ’concert ’, 
+’Theatre National Daniel Sorano ’, ’2026 -06 -12 20:00:00+00 ’, 5000 , ’https :// placehold .co /400 x250 /1 a3a5c /fff ? text = Concert ’) , 
+(’Expo photo : Dakar la nuit ’, ’expo ’, 
+’Galerie le Manege ’, ’2026 -06 -15 18:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 / ea7d2b /fff ? text = Expo ’) , 
+(’ Conference IA et sante en Afrique ’, ’conference ’, 
+’Amphi UCAD 2’, ’2026 -06 -18 10:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 /3 aa84d /fff ? text = Conf ’) , 
+(’Atelier batik traditionnel ’, ’atelier ’, 
+’Village Artisanal Soumbedioune ’, ’2026 -06 -22 14:00:00+00 ’, 3000 , ’https :// placehold .co /400 x250 / cc1f1f /fff ? text = Atelier ’) , 
+(’ Soutenance publique : energies renouvelables ’, ’soutenance ’, ’ESP - UCAD ’, ’2026 -06 -25 09:00:00+00 ’, 0 , 
+’https :// placehold .co /400 x250 /8 a6d10 /fff ? text = These ’) ;
+
+Cliquez Run. Puis : 
+select id , titre , categorie from public . evenements order by id ;
+
+Vous devez voir vos 5 lignes. Enregistrez ce SQL dans supabase/migrations/003_seed.sql. 
+$ git add supabase / migrations /003 _seed . sql 
+$ git commit -m " seed 5 evenements initiaux " 
+6 Étape 4 — Configurer le client Supabase dans React 6.1 Installer le SDK 
+$ cd apps / web 
+$ npm install @supabase / supabase - js 
+6.2 Le fichier .env.local 
+Vite lit automatiquement un fichier .env.local à la racine du projet. Toute variable préfixée par VITE_ est exposée au code client (accessible via import.meta.env.VITE_XXX). Créez apps/web/.env.local : 
+VITE_SUPABASE_URL = https :// xyz . supabase . co 
+VITE_SUPABASE_ANON_KEY = eyJhbG ... votre - cle - anon ... 
+Remplacez par les valeurs récupérées à l’Étape 0. 
+Dr. El Hadji Bassirou TOURE 9 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Attention — NE COMMITEZ JAMAIS .env.local 
+Ce fichier contient des identifiants qui, même publics (clé anon), ne doivent pas trainer dans l’historique Git. Vérifiez que .gitignore à la racine du repo contient bien .env*.local. Si ce n’est pas déjà le cas : 
+$ echo "" >> . gitignore 
+$ echo "# Variables d ’ environnement locales " >> . gitignore 
+$ echo ". env . local " >> . gitignore 
+$ echo ". env *. local " >> . gitignore 
+$ git add . gitignore 
+$ git commit -m " ignore les fichiers . env locaux " 
+Vérifiez avec git status : .env.local ne doit jamais apparaître. 
+6.3 Le client Supabase 
+Créez apps/web/src/lib/supabase.js : 
+import { createClient } from " @supabase / supabase -js"; 
+const url = import . meta . env . VITE_SUPABASE_URL ; 
+const anonKey = import . meta . env . VITE_SUPABASE_ANON_KEY ; 
+if (! url || ! anonKey ) { 
+throw new Error ( 
+" Variables Supabase manquantes . Verifiez apps / web /. env. local " ) ; 
+} 
+export const supabase = createClient ( url , anonKey ) ;
+
+Concept — Un seul client Supabase par app 
+Le createClient configure un client avec la persistance de session, l’écoute des change ments d’auth, la connexion realtime. Créer plusieurs clients dans une même application créerait des désynchronisations. On l’exporte une fois depuis lib/supabase.js et on l’importe partout où on en a besoin. 
+Test rapide dans la console du navigateur (ouvrez http://localhost:5173, F12 → Console) : 
+// Dans la console du navigateur 
+import ("./ src/lib / supabase .js") . then ( m => 
+m . supabase . from (" evenements ") . select ("id , titre ") . then ( console . log ) ) ;
+
+Vous devez voir un objet { data: [ ...5 evenements... ], error: null }. Si vous voyez data: [], c’est que RLS n’a pas de politique select ouverte. 
+$ git add apps / web / src / lib apps / web / package . json apps / web / package - lock . json $ git commit -m " installe @supabase / supabase - js et configure le client " 
+7 Étape 5 — Authentification signup / login 
+7.1 Le composant Auth 
+Créez apps/web/src/pages/Auth.jsx : 
+Dr. El Hadji Bassirou TOURE 10 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+import { useState } from " react "; 
+import { supabase } from "../ lib/ supabase "; 
+import { useNavigate } from "react - router -dom"; 
+import styles from "./ Auth . module .css"; 
+const Auth = () = > { 
+const [ mode , setMode ] = useState (" login ") ; // " login " | " signup " const [ email , setEmail ] = useState ("") ; 
+const [ motDePasse , setMotDePasse ] = useState ("") ; 
+const [ nom , setNom ] = useState ("") ; 
+const [ erreur , setErreur ] = useState ( null ) ; 
+const [ enCours , setEnCours ] = useState ( false ) ; 
+const navigate = useNavigate () ; 
+const soumettre = async ( event ) = > { 
+event . preventDefault () ; 
+setErreur ( null ) ; 
+setEnCours ( true ) ; 
+try { 
+if ( mode === " signup ") { 
+const { data , error } = await supabase . auth . signUp ({ 
+email , 
+password : motDePasse , 
+}) ; 
+if ( error ) throw error ; 
+// Creer la ligne profile associee 
+if ( data . user ) { 
+const { error : e2 } = await supabase 
+. from (" profiles ") 
+. insert ({ id : data . user . id , nom , role : " PUBLIC " }) ; 
+if ( e2 ) throw e2 ; 
+} 
+} else { 
+const { error } = await supabase . auth . signInWithPassword ({ 
+email , 
+password : motDePasse , 
+}) ; 
+if ( error ) throw error ; 
+} 
+navigate ("/") ; 
+} catch ( e ) { 
+setErreur ( e . message ) ; 
+} finally { 
+setEnCours ( false ) ; 
+} 
+}; 
+return ( 
+< form className ={ styles . form } onSubmit ={ soumettre } > 
+<h2 >{ mode === " signup " ? " Creer un compte " : "Se connecter "} </ h2 > 
+{ mode === " signup " && ( 
+< label className ={ styles . champ } > 
+Nom d’affichage 
+<input 
+type =" text " 
+value ={ nom} 
+onChange ={e = > setNom (e. target . value )} 
+required 
+/ > 
+Dr. El Hadji Bassirou TOURE 11 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+</label > 
+)} 
+<label className ={ styles . champ } > 
+Email 
+<input 
+type =" email " 
+value ={ email } 
+onChange ={e = > setEmail (e. target . value )} 
+required 
+/ > 
+</label > 
+<label className ={ styles . champ } > 
+Mot de passe 
+<input 
+type =" password " 
+value ={ motDePasse } 
+onChange ={e = > setMotDePasse (e. target . value )} 
+minLength ="6" 
+required 
+/ > 
+</label > 
+{ erreur && <p className ={ styles . erreur } >{ erreur } </p >} 
+<button type =" submit " disabled ={ enCours } className ={ styles . bouton } > { enCours 
+? "..." 
+: mode === " signup " ? " Creer le compte " : "Se connecter "} 
+</ button > 
+<button 
+type =" button " 
+onClick ={() = > setMode ( mode === " signup " ? " login " : " signup ")} className ={ styles . basculer } 
+> 
+{ mode === " signup " 
+? " Deja un compte ? Se connecter " 
+: "Pas encore de compte ? Creer "} 
+</ button > 
+</form > 
+); 
+}; 
+export default Auth ; 
+Créez le CSS apps/web/src/pages/Auth.module.css en reprenant les mêmes styles que NouvelEvenement.module.css du Lab 4 (mêmes conventions). 
+7.2 Gérer la session dans App 
+Modifiez apps/web/src/App.jsx pour écouter la session de l’utilisateur connecté : 
+import { useState , useEffect } from " react "; 
+import { BrowserRouter , Routes , Route } from "react - router -dom"; import { supabase } from "./ lib / supabase "; 
+import Accueil from "./ pages / Accueil "; 
+import NouvelEvenement from "./ pages / NouvelEvenement "; 
+import Detail from "./ pages / Detail "; 
+import Auth from "./ pages / Auth "; 
+import NavBar from "./ components / NavBar "; 
+Dr. El Hadji Bassirou TOURE 12 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+const App = () = > { 
+const [ evenements , setEvenements ] = useState ([]) ; 
+const [ chargement , setChargement ] = useState ( true ) ; 
+const [ erreur , setErreur ] = useState ( null ) ; 
+const [ session , setSession ] = useState ( null ) ; 
+useEffect (() = > { 
+// Recuperer la session actuelle au montage 
+supabase . auth . getSession () . then (({ data }) = > { 
+setSession ( data . session ) ; 
+}) ; 
+// Ecouter tout changement de session (login , logout , refresh ) const { data : subscription } = supabase . auth . onAuthStateChange ( ( _event , newSession ) = > { 
+setSession ( newSession ) ; 
+} 
+) ; 
+return () = > subscription . subscription . unsubscribe () ; 
+} , []) ; 
+// La fonction charger () du Lab 3 reste pour l’instant , on l’adaptera au Lab 6 
+const charger = async () = > { 
+setChargement ( true ) ; 
+setErreur ( null ) ; 
+try { 
+const reponse = await fetch ("/ evenements . json ") ; 
+if (! reponse . ok ) throw new Error (‘Erreur HTTP ${ reponse . status }‘) ; const data = await reponse . json () ; 
+setEvenements ( data ) ; 
+} catch ( e ) { 
+setErreur ( e . message ) ; 
+} finally { 
+setChargement ( false ) ; 
+} 
+}; 
+useEffect (() = > { charger () ; } , []) ; 
+const ajouterEvenement = ( nouvel ) = > { 
+setEvenements ( precedents = > [ nouvel , ... precedents ]) ; 
+}; 
+return ( 
+< BrowserRouter > 
+< NavBar session ={ session } / > 
+< Routes > 
+< Route path ="/" element ={ < Accueil evenements ={ evenements } 
+chargement ={ chargement } 
+erreur ={ erreur } 
+onReessayer ={ charger } / >} / > 
+< Route path ="/ nouveau " element ={ < NouvelEvenement 
+onAjouter ={ ajouterEvenement } / >} / > 
+< Route path ="/ evenement /: id" element ={ < Detail evenements ={ evenements } / >} / > 
+< Route path ="/ auth " element ={ < Auth / >} / > 
+</ Routes > 
+</ BrowserRouter > 
+) ; 
+}; 
+Dr. El Hadji Bassirou TOURE 13 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+export default App ; 
+Point clé — Le pattern session Supabase 
+1. Au montage, supabase.auth.getSession() lit la session en cache (dans le localSto rage). 
+2. onAuthStateChange enregistre un écouteur : à chaque login/logout/refresh de token, on met à jour l’état session. 
+3. La fonction retournée par useEffect désabonne l’écouteur au démontage — exactement le pattern de nettoyage vu au bonus du Lab 3. 
+Résultat : n’importe où dans l’application, la valeur session reflète en temps réel l’état d’auth. Si l’utilisateur ferme un autre onglet et se déconnecte, cet onglet-ci le voit tout de suite. 
+7.3 Adapter la NavBar 
+Modifiez apps/web/src/components/NavBar.jsx pour afficher les liens différemment selon session : 
+import { NavLink } from "react -router -dom"; 
+import { supabase } from "../ lib/ supabase "; 
+import styles from "./ NavBar . module . css"; 
+const NavBar = ({ session }) = > { 
+const lienActif = ({ isActive }) = > 
+isActive ? ‘${ styles . lien } ${ styles . lienActif }‘ : styles . lien ; 
+const seDeconnecter = async () = > { 
+await supabase . auth . signOut () ; 
+}; 
+return ( 
+< nav className ={ styles . nav } > 
+< div className ={ styles . logo } > SenEvent </ div > 
+< div className ={ styles . liens } > 
+< NavLink to ="/" end className ={ lienActif } > Accueil </ NavLink > 
+{ session && ( 
+< NavLink to ="/ nouveau " className ={ lienActif } > Nouvel 
+evenement </ NavLink > 
+) } 
+{ session ? ( 
+<> 
+< span className ={ styles . email } >{ session . user . email } </ span > 
+< button onClick ={ seDeconnecter } className ={ styles . deconnexion } > Se deconnecter 
+</ button > 
+</> 
+) : ( 
+< NavLink to ="/ auth " className ={ lienActif } > Se connecter </ NavLink > ) } 
+</ div > 
+</ nav > 
+) ; 
+}; 
+export default NavBar ;
+
+Ajoutez les 2 nouveaux styles à NavBar.module.css : 
+Dr. El Hadji Bassirou TOURE 14 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+. email { 
+color : # a8c5e0 ; 
+font - size : 0.9 rem ; 
+} 
+. deconnexion { 
+background : transparent ; 
+border : 1 px solid # ea7d2b ; 
+color : # ea7d2b ; 
+padding : 0.3 rem 0.8 rem ; 
+border - radius : 4 px ; 
+cursor : pointer ; 
+} 
+. deconnexion : hover { 
+background : # ea7d2b ; 
+color : white ; 
+} 
+7.4 Tester le parcours d’auth complet 
+Rafraîchissez la page. Vous devez voir « Se connecter » dans la NavBar. Puis : 1. Cliquez « Se connecter ». La page /auth s’affiche. 
+2. Basculez sur « Créer un compte ». Saisissez nom, email, mot de passe (6 caractères min). Cliquez « Créer le compte ». 
+3. Vérifiez votre boîte mail : Supabase envoie un lien de confirmation par défaut. Cliquez dessus. Vous êtes redirigé vers l’application. 
+4. La NavBar affiche maintenant votre email et un bouton « Se deconnecter ». Le lien « Nouvel événement » apparaît (visible seulement si connecté). 
+5. Cliquez « Se deconnecter ». Retour à l’état non connecté. 
+Dans le dashboard Supabase : Authentication → Users. Votre utilisateur y apparaît. Table Editor → profiles. Une ligne avec votre id, nom, rôle PUBLIC. 
+Attention — Confirmation d’email en développement 
+En dev, la confirmation par email peut ralentir les tests. Dans Authentication → Provi ders → Email, désactivez temporairement Confirm email. Réactivez avant la production. 
+$ git commit - am " auth Supabase : signup , login , deconnexion , NavBar contextuelle " 
+Dr. El Hadji Bassirou TOURE 15 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 8 Aide-mémoire 
+Concept Syntaxe / exemple 
+Créer table SQL create table public.x (id ... primary key, ...); 
+Clé étrangère references public.y(id) on delete cascade Contrainte de valeur check (col in (’A’,’B’,’C’)) 
+Auto-incrément bigint generated always as identity 
+Activer RLS alter table public.x enable row level security; 
+Politique SELECT public create policy ... for select using (true); Politique par owner ... using (col = auth.uid()) 
+Récupérer l’user auth.uid() en SQL, supabase.auth.getUser() en JS 
+Installer le SDK npm install @supabase/supabase-js 
+Créer le client createClient(url, anonKey) dans lib/supabase.js 
+Variables Vite import.meta.env.VITE_XXX 
+Ignorer les env .env.local dans .gitignore 
+Signup supabase.auth.signUp({ email, password }) Login supabase.auth.signInWithPassword({ email, password }) 
+Session supabase.auth.getSession() 
+Écouter session supabase.auth.onAuthStateChange((e, s) => ...) 
+Logout supabase.auth.signOut() 
+Commit Git git commit -m "ajoute schema supabase + rls" Tag du lab git tag -a v0.5-supabase 
+9 Validation du Lab 5 
+9.1 Checklist 
+✓ Un projet Supabase existe, les 3 membres de l’équipe y sont invités 
+✓ Les 3 tables profiles, evenements, inscriptions sont visibles dans le Table Editor ✓ RLS est activée sur les 3 tables (pastille verte « RLS enabled » dans le Table Editor) ✓ Les politiques SELECT publiques permettent au client non authentifié de lire les 5 événements ✓ Les 5 événements seed sont dans public.evenements 
+✓ Le repo contient supabase/migrations/ avec 3 fichiers SQL (001_schema.sql, 002_rls.sql, 003_seed.sql) 
+✓ apps/web/.env.local existe localement et est ignoré par Git 
+✓ Créer un compte via l’app fait apparaître un utilisateur dans Auth et une ligne dans profiles Dr. El Hadji Bassirou TOURE 16 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+✓ La NavBar affiche l’email et le bouton « Se deconnecter » quand connecté ✓ Le tag v0.5-supabase est posé sur main 
+9.2 Vérification côté enseignant (Git uniquement) 
+$ git shortlog - sne v0 .4 - spa .. v0 .5 - supabase 
+$ git log v0 .4 - spa .. v0 .5 - supabase -- oneline 
+$ ls supabase / migrations / 
+$ git ls - files | grep -c "\. env " # doit retourner 0 
+$ grep -l " createClient \| supabase . auth " apps / web / src /**/*. js * 
+Un .env.local committé (résultat non-zéro à la 4e commande) = drapeau rouge et perte de points. 
+9.3 Découpage en sous-tâches pour l’équipe 
+À faire — Trois sous-tâches équivalentes — Mansour Git master, dernier lab de son mandat 
+— Sous-tâche A — Atou : créer le projet Supabase, inviter les 2 autres membres, écrire et exécuter les 3 create table (Étape 1), insérer les 5 événements seed (Étape 3), commit des 3 fichiers SQL dans supabase/migrations/. 
+— Sous-tâche B — Mansour (Git master) : écrire et poser toutes les politiques RLS (Étape 2), tester en SQL Editor que les lectures/écritures se comportent comme attendu, installer @supabase/supabase-js, créer lib/supabase.js et .env.local (Étape 4), vérifier que .gitignore bloque bien les env, coordonner les merges. 
+— Sous-tâche C — Khady : créer la page Auth.jsx + son CSS Module (Étape 5, début), gérer la session dans App.jsx (onAuthStateChange), adapter la NavBar pour montrer email/déconnexion (Étape 5, fin). 
+Ordre de merge obligatoire : A doit être mergé avant B (RLS a besoin des tables), et B avant C (le composant Auth a besoin du client Supabase configuré). Séquentiel, pas parallèle. 
+9.4 Tag de fin de lab 
+$ git checkout main 
+$ git pull origin main 
+$ git tag -a v0 .5 - supabase -m " Lab 5 termine : Supabase + schema + RLS + auth " $ git push origin v0 .5 - supabase 
+9.5 Vers le Lab 6 
+Ce que vous gagnez — Limite actuelle, qui ouvre le Lab 6 
+Aujourd’hui, l’application est à moitié branchée sur Supabase : 
+— L’auth passe par Supabase — login, session, déconnexion. 
+— Les événements viennent encore du mock JSON — rien n’a changé côté catalogue. Au Lab 6, on remplace fetch("/evenements.json") par supabase.from(’evenements’).select(). Le formulaire NouvelEvenement fait un vrai INSERT. Le bouton d’inscription à un événement fait un INSERT dans inscriptions. 
+Dr. El Hadji Bassirou TOURE 17 2025–2026
+DAWM — Lab 5 : Supabase (projet, SQL, auth) M1 RETEL — DMI/FST/UCAD 
+Ajout d’un upload d’image via Supabase Storage. La persistance devient réelle : F5 ne perd plus rien. 
+Khady prend le mandat Git master pour les Labs 6–8. 
+Exercice bonus — Pour ceux qui terminent en avance 
+Intuition — Bonus : un trigger SQL pour créer le profil automatiquement 
+Aujourd’hui, à l’inscription, on fait deux appels : signUp puis insert dans profiles. Si le premier réussit mais le second échoue (bug réseau, RLS mal configurée), on se retrouve avec un utilisateur sans profil. 
+Le bon pattern PostgreSQL : un trigger qui crée automatiquement la ligne profiles quand un utilisateur est ajouté à auth.users. 
+create or replace function public . handle_new_user () 
+returns trigger as $$ 
+begin 
+insert into public . profiles ( id , nom , role ) 
+values ( new . id , coalesce ( new . raw_user_meta_data - > >’nom ’, ’Invite ’) , ’ PUBLIC ’) ; 
+return new ; 
+end ; 
+$$ language plpgsql security definer ; 
+create trigger on_auth_user_created 
+after insert on auth . users 
+for each row execute function public . handle_new_user () ;
+
+Après ce trigger, supprimez le .from("profiles").insert(...) dans Auth.jsx : Post greSQL s’en charge tout seul, dans la même transaction que le signup. Impossible d’avoir un utilisateur sans profil. 
+Sauvegardez dans supabase/migrations/004_trigger_profile.sql. C’est un exemple typique du « code métier en base » que PostgreSQL permet. 
+Lab 5 — Terminé ✓ 
+Vous avez créé un projet Supabase, écrit un schéma SQL, 
+configuré Row Level Security, connecté le SDK depuis React, 
+et fait fonctionner un cycle complet signup / login / logout. 
+Prochaine étape : Lab 6 — CRUD Supabase depuis React. 
+Tag posé : v0.5-supabase
+
+Dr. El Hadji Bassirou TOURE 18 2025–2026

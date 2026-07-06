@@ -1,0 +1,56 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 2rem;
+  background: #1a3a5c;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #ea7d2b;
+}
+
+.liens {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.lien {
+  color: white;
+  text-decoration: none;
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.lien:hover {
+  border-bottom-color: #ea7d2b;
+}
+
+.lienActif {
+  border-bottom-color: #ea7d2b;
+  font-weight: bold;
+}
+
+.email {
+  color: #a8c5e0;
+  font-size: 0.9rem;
+}
+
+.deconnexion {
+  background: transparent;
+  border: 1px solid #ea7d2b;
+  color: #ea7d2b;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.deconnexion:hover {
+  background: #ea7d2b;
+  color: white;
+}

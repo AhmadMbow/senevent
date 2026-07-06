@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "titre": "Festival de Jazz de Saint-Louis",
+    "categorie": "concert",
+    "lieu_nom": "Place Faidherbe, Saint-Louis",
+    "prix": 5000,
+    "date_debut": "2026-08-12T20:00:00.000Z",
+    "image_url": "https://placehold.co/400x250/1a3a5c/fff?text=concert"
+  },
+  {
+    "id": 2,
+    "titre": "Exposition Art Contemporain Dakarois",
+    "categorie": "expo",
+    "lieu_nom": "Musee Theodore Monod, Dakar",
+    "prix": 0,
+    "date_debut": "2026-07-20T10:00:00.000Z",
+    "image_url": "https://placehold.co/400x250/1a3a5c/fff?text=expo"
+  },
+  {
+    "id": 3,
+    "titre": "Conference IA & Developpement",
+    "categorie": "conference",
+    "lieu_nom": "UCAD II, Dakar",
+    "prix": 2000,
+    "date_debut": "2026-09-05T09:00:00.000Z",
+    "image_url": "https://placehold.co/400x250/1a3a5c/fff?text=conference"
+  },
+  {
+    "id": 4,
+    "titre": "Atelier Photographie de Rue",
+    "categorie": "atelier",
+    "lieu_nom": "Ile de Goree",
+    "prix": 3500,
+    "date_debut": "2026-07-28T15:00:00.000Z",
+    "image_url": "https://placehold.co/400x250/1a3a5c/fff?text=atelier"
+  },
+  {
+    "id": 5,
+    "titre": "Soutenance Master DAWM",
+    "categorie": "soutenance",
+    "lieu_nom": "FST/DMI, UCAD, Dakar",
+    "prix": 0,
+    "date_debut": "2026-07-15T08:30:00.000Z",
+    "image_url": "https://placehold.co/400x250/1a3a5c/fff?text=soutenance"
+  }
+]

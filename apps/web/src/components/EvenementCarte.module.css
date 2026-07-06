@@ -1,0 +1,35 @@
+.lien {
+  text-decoration: none;
+  color: inherit;
+}
+
+.carte {
+  background: white;
+  border: 1px solid #e2e6ec;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.carte:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.titre {
+  margin: 0 0 0.5rem;
+  color: #1a3a5c;
+}
+
+.info {
+  margin: 0.2rem 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.prix {
+  margin: 0.5rem 0 0;
+  color: #ea7d2b;
+  font-weight: bold;
+}

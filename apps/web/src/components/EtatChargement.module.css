@@ -1,0 +1,29 @@
+.chargement {
+  text-align: center;
+  color: #1a3a5c;
+  font-weight: 600;
+  padding: 2rem;
+}
+
+.erreur {
+  text-align: center;
+  color: #a01a1a;
+  background: #fdecec;
+  border: 1px solid #f0b8b8;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.bouton {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #a01a1a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.bouton:hover {
+  background: #c22;
+}

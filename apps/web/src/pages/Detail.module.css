@@ -1,0 +1,62 @@
+.container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.retour {
+  background: none;
+  border: 1px solid #1a3a5c;
+  color: #1a3a5c;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.retour:hover {
+  background: #1a3a5c;
+  color: white;
+}
+
+.titre {
+  color: #1a3a5c;
+  margin: 0.5rem 0;
+}
+
+.categorie {
+  background: #ea7d2b;
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.image {
+  width: 100%;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.infos {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 0.5rem 1rem;
+}
+
+.infos dt {
+  font-weight: 600;
+  color: #555;
+}
+
+.infos dd {
+  margin: 0;
+}
+
+.prix {
+  color: #ea7d2b;
+  font-weight: bold;
+}

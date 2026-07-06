@@ -1,0 +1,12 @@
+# Dependances
+node_modules/
+
+# Build
+dist/
+
+# Variables d'environnement locales
+.env.local
+.env*.local
+
+# macOS
+.DS_Store
