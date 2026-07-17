@@ -1,0 +1,71 @@
+{
+  "comptes": {
+    "A": "a099242b-98c1-46e6-99ee-c71d6ed19c8b",
+    "B": "d327824d-2b17-4ccd-ba69-1162d2ad1766"
+  },
+  "profils": [
+    {
+      "id": "a099242b-98c1-46e6-99ee-c71d6ed19c8b",
+      "nom": "Atou Diop"
+    },
+    {
+      "id": "d327824d-2b17-4ccd-ba69-1162d2ad1766",
+      "nom": "Khady Ndiaye"
+    }
+  ],
+  "insert": {
+    "statut": 201,
+    "evenement": {
+      "id": 8,
+      "titre": "Nuit du code UCAD",
+      "categorie": "atelier",
+      "lieu_nom": "ESP - UCAD",
+      "date_debut": "2026-08-14T18:00:00+00:00",
+      "prix": 2000,
+      "image_url": "https://placehold.co/400x250/1a3a5c/fff?text=atelier",
+      "organisateur_id": "a099242b-98c1-46e6-99ee-c71d6ed19c8b",
+      "created_at": "2026-07-17T12:53:12.7651+00:00"
+    }
+  },
+  "insertUsurpe": {
+    "statut": 403,
+    "corps": {
+      "code": "42501",
+      "details": null,
+      "hint": null,
+      "message": "new row violates row-level security policy for table \"evenements\""
+    }
+  },
+  "inscription": {
+    "statut": 201,
+    "ligne": {
+      "id": 1,
+      "evenement_id": 8,
+      "utilisateur_id": "d327824d-2b17-4ccd-ba69-1162d2ad1766",
+      "created_at": "2026-07-17T12:53:13.191985+00:00"
+    }
+  },
+  "doublon": {
+    "statut": 409,
+    "corps": {
+      "code": "23505",
+      "details": null,
+      "hint": null,
+      "message": "duplicate key value violates unique constraint \"inscriptions_evenement_id_utilisateur_id_key\""
+    }
+  },
+  "deleteRefuse": {
+    "statut": 200,
+    "lignesTouchees": 0,
+    "evenementToujoursLa": true
+  },
+  "storage": {
+    "statut": 200,
+    "corps": "{\"Key\":\"affiches/a099242b-98c1-46e6-99ee-c71d6ed19c8b/1784292793717_affiche.png\",\"Id\":\"1a6deb91-5569-428a-8d0b-a683fb23d85d\"}",
+    "urlPublique": "https://siszafptxskyfdedpqsl.supabase.co/storage/v1/object/public/affiches/a099242b-98c1-46e6-99ee-c71d6ed19c8b/1784292793717_affiche.png"
+  },
+  "storageUsurpe": {
+    "statut": 400,
+    "corps": "{\"statusCode\":\"403\",\"error\":\"Unauthorized\",\"message\":\"new row violates row-level security policy\"}"
+  }
+}

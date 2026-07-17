@@ -31,29 +31,31 @@ const App = () => {
     return () => subscription.subscription.unsubscribe();
   }, []);
 
-  // La fonction charger() du Lab 3 reste pour l'instant, on l'adaptera au Lab 6.
+  // Lecture des evenements depuis Supabase (remplace le mock JSON du Lab 3).
+  // La policy RLS "select using (true)" autorise la lecture publique.
+  //
+  // "*, profiles(nom)" ramene toutes les colonnes de evenements plus le nom de
+  // l'organisateur : Supabase suit la cle etrangere organisateur_id declaree au
+  // Lab 5. Les 5 evenements seed n'ont pas d'organisateur, leur profiles est null.
+  // Le tri par date_debut est fait par PostgreSQL, pas par le client.
   const charger = async () => {
     setChargement(true);
     setErreur(null);
-    try {
-      const reponse = await fetch("/evenements.json");
-      if (!reponse.ok) throw new Error(`Erreur HTTP ${reponse.status}`);
-      const data = await reponse.json();
+    const { data, error } = await supabase
+      .from("evenements")
+      .select("*, profiles(nom)")
+      .order("date_debut", { ascending: true });
+    if (error) {
+      setErreur(error.message);
+    } else {
       setEvenements(data);
-    } catch (e) {
-      setErreur(e.message);
-    } finally {
-      setChargement(false);
     }
+    setChargement(false);
   };
 
   useEffect(() => {
     charger();
   }, []);
-
-  const ajouterEvenement = nouvel => {
-    setEvenements(precedents => [nouvel, ...precedents]);
-  };
 
   return (
     <BrowserRouter>
@@ -70,13 +72,21 @@ const App = () => {
             />
           }
         />
+        {/* Apres une ecriture, on re-fetch au lieu de bricoler l'etat local :
+            la liste reste ce que la base dit, sans divergence possible. */}
         <Route
           path="/nouveau"
-          element={<NouvelEvenement onAjouter={ajouterEvenement} />}
+          element={<NouvelEvenement onAjoutReussi={charger} />}
         />
         <Route
           path="/evenement/:id"
-          element={<Detail evenements={evenements} />}
+          element={
+            <Detail
+              evenements={evenements}
+              session={session}
+              onSupprime={charger}
+            />
+          }
         />
         <Route path="/auth" element={<Auth />} />
         <Route path="*" element={<NonTrouvee />} />

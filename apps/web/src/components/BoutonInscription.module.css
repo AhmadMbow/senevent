@@ -1,0 +1,42 @@
+.zone {
+  margin: 1.5rem 0 0;
+}
+
+.inscrire,
+.desinscrire {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.inscrire {
+  background: #1f7a4d;
+}
+
+.inscrire:hover {
+  background: #176038;
+}
+
+.desinscrire {
+  background: #ea7d2b;
+}
+
+.desinscrire:hover {
+  background: #cc6a1f;
+}
+
+.info {
+  margin: 1.5rem 0 0;
+  color: #555;
+  font-style: italic;
+}
+
+.erreur {
+  margin: 0.5rem 0 0;
+  color: #a01a1a;
+  font-size: 0.85rem;
+}

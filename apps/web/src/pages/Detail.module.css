@@ -60,3 +60,29 @@
   color: #ea7d2b;
   font-weight: bold;
 }
+
+/* Action destructive, reservee a l'organisateur : rouge, et detachee des
+   autres boutons pour eviter le clic reflexe. */
+.supprimer {
+  margin: 1rem 0 0;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: none;
+  color: #a01a1a;
+  border: 1px solid #a01a1a;
+  border-radius: 4px;
+  cursor: pointer;
+  display: block;
+}
+
+.supprimer:hover {
+  background: #a01a1a;
+  color: white;
+}
+
+.erreur {
+  margin: 0.5rem 0 0;
+  color: #a01a1a;
+  font-size: 0.85rem;
+}

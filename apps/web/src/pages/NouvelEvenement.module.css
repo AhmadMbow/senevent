@@ -38,6 +38,17 @@
   font-weight: normal;
 }
 
+.aide {
+  color: #666;
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+
+.bouton:disabled {
+  background: #8fa3b8;
+  cursor: not-allowed;
+}
+
 .bouton {
   padding: 0.6rem;
   font-size: 1rem;

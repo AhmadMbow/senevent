@@ -18,18 +18,15 @@ const Auth = () => {
     setEnCours(true);
     try {
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
+        // Le nom part dans raw_user_meta_data : le trigger on_auth_user_created
+        // (Lab 5) le lit pour creer la ligne profiles dans la meme transaction.
+        // Inserer nous-memes dans profiles ferait doublon avec le trigger.
+        const { error } = await supabase.auth.signUp({
           email,
           password: motDePasse,
+          options: { data: { nom } },
         });
         if (error) throw error;
-        // Creer la ligne profile associee
-        if (data.user) {
-          const { error: e2 } = await supabase
-            .from("profiles")
-            .insert({ id: data.user.id, nom, role: "PUBLIC" });
-          if (e2) throw e2;
-        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
