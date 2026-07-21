@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
+import { estInscrit, inscrire, desinscrire } from "@senevent/shared";
 import styles from "./BoutonInscription.module.css";
 
 const BoutonInscription = ({ evenementId, session }) => {
@@ -16,18 +16,13 @@ const BoutonInscription = ({ evenementId, session }) => {
         return;
       }
       setChargement(true);
-      const { data, error } = await supabase
-        .from("inscriptions")
-        .select("id")
-        .eq("evenement_id", evenementId)
-        .eq("utilisateur_id", session.user.id);
-
-      if (error) {
-        setErreur(error.message);
-      } else {
-        setInscrit(data.length > 0);
+      try {
+        setInscrit(await estInscrit(evenementId, session.user.id));
+      } catch (e) {
+        setErreur(e.message);
+      } finally {
+        setChargement(false);
       }
-      setChargement(false);
     };
     verifier();
   }, [evenementId, session]);
@@ -36,28 +31,21 @@ const BoutonInscription = ({ evenementId, session }) => {
     setErreur(null);
     // La policy "inscriptions_insert_self" impose utilisateur_id = auth.uid() :
     // on ne peut inscrire que soi-meme, quoi qu'envoie le client.
-    const { error } = await supabase.from("inscriptions").insert({
-      evenement_id: evenementId,
-      utilisateur_id: session.user.id,
-    });
-    if (error) {
-      setErreur(error.message);
-    } else {
+    try {
+      await inscrire(evenementId, session.user.id);
       setInscrit(true);
+    } catch (e) {
+      setErreur(e.message);
     }
   };
 
   const seDesinscrire = async () => {
     setErreur(null);
-    const { error } = await supabase
-      .from("inscriptions")
-      .delete()
-      .eq("evenement_id", evenementId)
-      .eq("utilisateur_id", session.user.id);
-    if (error) {
-      setErreur(error.message);
-    } else {
+    try {
+      await desinscrire(evenementId, session.user.id);
       setInscrit(false);
+    } catch (e) {
+      setErreur(e.message);
     }
   };
 

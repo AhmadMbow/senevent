@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
+import { sInscrire, seConnecter } from "@senevent/shared";
 import { useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
 
@@ -21,18 +21,9 @@ const Auth = () => {
         // Le nom part dans raw_user_meta_data : le trigger on_auth_user_created
         // (Lab 5) le lit pour creer la ligne profiles dans la meme transaction.
         // Inserer nous-memes dans profiles ferait doublon avec le trigger.
-        const { error } = await supabase.auth.signUp({
-          email,
-          password: motDePasse,
-          options: { data: { nom } },
-        });
-        if (error) throw error;
+        await sInscrire(email, motDePasse, nom);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password: motDePasse,
-        });
-        if (error) throw error;
+        await seConnecter(email, motDePasse);
       }
       navigate("/");
     } catch (e) {

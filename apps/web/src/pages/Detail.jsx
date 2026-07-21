@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { supprimerEvenement } from "@senevent/shared";
 import BoutonInscription from "../components/BoutonInscription";
 import styles from "./Detail.module.css";
 
@@ -35,13 +35,10 @@ const Detail = ({ evenements, session, onSupprime }) => {
     if (!window.confirm("Supprimer cet evenement ?")) return;
     setErreurSuppression(null);
 
-    const { error } = await supabase
-      .from("evenements")
-      .delete()
-      .eq("id", evenement.id);
-
-    if (error) {
-      setErreurSuppression(error.message);
+    try {
+      await supprimerEvenement(evenement.id);
+    } catch (e) {
+      setErreurSuppression(e.message);
       return;
     }
     await onSupprime(); // recharge la liste avant de revenir a l'accueil

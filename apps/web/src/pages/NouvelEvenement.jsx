@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { creerEvenement, getSupabase } from "@senevent/shared";
 import styles from "./NouvelEvenement.module.css";
 
 const NouvelEvenement = ({ onAjoutReussi }) => {
@@ -46,50 +46,51 @@ const NouvelEvenement = ({ onAjoutReussi }) => {
     // La policy RLS exige organisateur_id = auth.uid() : on recupere l'utilisateur.
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await getSupabase().auth.getUser();
     if (!user) {
       setErreurServeur("Vous devez etre connecte.");
       setEnCours(false);
       return;
     }
 
-    // Bonus Storage : on televerse l'affiche AVANT l'insert, pour connaitre son
-    // URL publique. Le chemin commence par l'uid, ce qu'exige la policy
-    // "affiches_insert_auth" (migration 006). A defaut de fichier, placeholder.
-    let image_url = `https://placehold.co/400x250/1a3a5c/fff?text=${categorie}`;
-    if (fichier) {
-      const chemin = `${user.id}/${Date.now()}_${fichier.name}`;
-      const { error: erreurUpload } = await supabase.storage
-        .from("affiches")
-        .upload(chemin, fichier);
-      if (erreurUpload) {
-        setErreurServeur(erreurUpload.message);
-        setEnCours(false);
-        return;
+    try {
+      // Bonus Storage : on televerse l'affiche AVANT l'insert, pour connaitre son
+      // URL publique. Le chemin commence par l'uid, ce qu'exige la policy
+      // "affiches_insert_auth" (migration 006). A defaut de fichier, placeholder.
+      let image_url = `https://placehold.co/400x250/1a3a5c/fff?text=${categorie}`;
+      if (fichier) {
+        const chemin = `${user.id}/${Date.now()}_${fichier.name}`;
+        const { error: erreurUpload } = await getSupabase().storage
+          .from("affiches")
+          .upload(chemin, fichier);
+        if (erreurUpload) {
+          setErreurServeur(erreurUpload.message);
+          setEnCours(false);
+          return;
+        }
+        // getPublicUrl est synchrone : il construit l'URL, sans appel reseau.
+        const { data: urlData } = getSupabase().storage
+          .from("affiches")
+          .getPublicUrl(chemin);
+        image_url = urlData.publicUrl;
       }
-      // getPublicUrl est synchrone : il construit l'URL, sans appel reseau.
-      const { data: urlData } = supabase.storage
-        .from("affiches")
-        .getPublicUrl(chemin);
-      image_url = urlData.publicUrl;
-    }
 
-    const { error } = await supabase.from("evenements").insert({
-      titre: titre.trim(),
-      categorie,
-      lieu_nom: lieu.trim(),
-      prix: Number(prix),
-      date_debut: new Date().toISOString(),
-      image_url,
-      organisateur_id: user.id,
-    });
-
-    setEnCours(false);
-
-    if (error) {
-      setErreurServeur(error.message);
+      await creerEvenement({
+        titre: titre.trim(),
+        categorie,
+        lieu_nom: lieu.trim(),
+        prix: Number(prix),
+        date_debut: new Date().toISOString(),
+        image_url,
+        organisateur_id: user.id,
+      });
+    } catch (e) {
+      setErreurServeur(e.message);
+      setEnCours(false);
       return;
     }
+
+    setEnCours(false);
 
     await onAjoutReussi(); // demande a App de recharger la liste depuis la base
     navigate("/"); // Retour a l'accueil apres ajout
