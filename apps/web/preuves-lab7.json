@@ -1,0 +1,6 @@
+{
+  "catalogueSource": "https://siszafptxskyfdedpqsl.supabase.co/rest/v1/evenements?select=*%2Cprofiles%28nom%29&order=date_debut.asc",
+  "mockJsonAppele": false,
+  "importPartage": "import { initSupabase } from \"/@fs/Users/babacarmbow/Desktop/Projets dev/senevent/packages/shared/src/index.ts\";",
+  "nbRequetesSupabase": 14
+}
