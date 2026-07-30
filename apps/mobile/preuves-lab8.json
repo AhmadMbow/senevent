@@ -1,0 +1,14 @@
+{
+  "sousTitre": "10 evenements a Dakar",
+  "filtreClique": true,
+  "cartesConcertApresFiltre": 4,
+  "texteErreur": "Chargement impossibleservice indisponibleReessayer",
+  "domainesContactes": [
+    "d8j0ntlcm91z4.cloudfront.net",
+    "localhost",
+    "placehold.co",
+    "siszafptxskyfdedpqsl.supabase.co"
+  ],
+  "supabaseContacte": true,
+  "cdnAffichesContacte": true
+}
