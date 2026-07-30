@@ -18,5 +18,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "puppeteer-core": "^24.43.1",
+    "react-dom": "^19.1.0",
+    "react-native-web": "^0.21.2"
+  }
 }
