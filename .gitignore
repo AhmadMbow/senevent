@@ -8,5 +8,8 @@ dist/
 .env.local
 .env*.local
 
+# Variables d'environnement Expo (apps/mobile lit un .env simple, pas .env.local)
+apps/mobile/.env
+
 # macOS
 .DS_Store
