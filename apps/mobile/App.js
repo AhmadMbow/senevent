@@ -1,15 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   StyleSheet,
   Text,
   View,
   FlatList,
-  ActivityIndicator,
   SafeAreaView,
+  RefreshControl,
+  Pressable,
+  ScrollView,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
 import { initSupabase, getEvenements } from "@senevent/shared";
+import EnteteAccueil from "./components/EnteteAccueil";
+import FiltreCategories from "./components/FiltreCategories";
 import EvenementCarte from "./components/EvenementCarte";
+import CarteSquelette from "./components/CarteSquelette";
+import { couleurs, rayons, espaces } from "./theme";
 
 // Initialiser Supabase avec les variables d'environnement d'Expo.
 // Cote web c'etait import.meta.env.VITE_... dans main.jsx : seule la facon de
@@ -24,111 +31,193 @@ export default function App() {
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
   const [rafraichissement, setRafraichissement] = useState(false);
+  const [categorieActive, setCategorieActive] = useState(null);
 
-  useEffect(() => {
-    const charger = async () => {
-      try {
-        const data = await getEvenements();
-        setEvenements(data);
-      } catch (e) {
-        setErreur(e.message);
-      } finally {
-        setChargement(false);
-      }
-    };
-    charger();
-  }, []);
-
-  // Bonus : tirer la liste vers le bas pour recharger depuis Supabase.
-  const rafraichir = async () => {
-    setRafraichissement(true);
+  // Une seule fonction de chargement, reutilisee au montage, au pull-to-refresh
+  // et par le bouton "Reessayer" de l'ecran d'erreur.
+  const charger = useCallback(async () => {
     try {
       const data = await getEvenements();
       setEvenements(data);
       setErreur(null);
     } catch (e) {
       setErreur(e.message);
-    } finally {
-      setRafraichissement(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    charger().finally(() => setChargement(false));
+  }, [charger]);
+
+  const rafraichir = useCallback(async () => {
+    setRafraichissement(true);
+    await charger();
+    setRafraichissement(false);
+  }, [charger]);
+
+  const reessayer = useCallback(async () => {
+    setChargement(true);
+    await charger();
+    setChargement(false);
+  }, [charger]);
+
+  // Nombre d'evenements par categorie, pour les pastilles des filtres.
+  const compteurs = useMemo(() => {
+    const total = { total: evenements.length };
+    for (const ev of evenements) {
+      total[ev.categorie] = (total[ev.categorie] ?? 0) + 1;
+    }
+    return total;
+  }, [evenements]);
+
+  // Le filtrage se fait sur la liste deja chargee : pas de nouvelle requete.
+  const visibles = useMemo(
+    () =>
+      categorieActive
+        ? evenements.filter((ev) => ev.categorie === categorieActive)
+        : evenements,
+    [evenements, categorieActive]
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.entete}>
-        <Text style={styles.titre}>SenEvent</Text>
-        <Text style={styles.sousTitre}>Evenements a Dakar</Text>
-      </View>
+    <SafeAreaView style={styles.ecran}>
+      <StatusBar style="light" />
+      <EnteteAccueil nombre={evenements.length} chargement={chargement} />
 
-      {chargement && (
-        <ActivityIndicator size="large" color="#1a3a5c" style={styles.centre} />
-      )}
-
-      {erreur && <Text style={styles.erreur}>Erreur : {erreur}</Text>}
-
-      {!chargement && !erreur && (
-        <FlatList
-          data={evenements}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <EvenementCarte evenement={item} />}
-          contentContainerStyle={styles.liste}
-          refreshing={rafraichissement}
-          onRefresh={rafraichir}
-          ListEmptyComponent={
-            <Text style={styles.vide}>Aucun evenement pour le moment.</Text>
-          }
-          ListFooterComponent={
-            <Text style={styles.footer}>Realise par Papa Ahmadou Mbow</Text>
-          }
+      {!erreur && (
+        <FiltreCategories
+          actif={categorieActive}
+          onChange={setCategorieActive}
+          compteurs={compteurs}
         />
       )}
 
-      <StatusBar style="light" />
+      {chargement && (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <CarteSquelette />
+          <CarteSquelette />
+          <CarteSquelette />
+        </ScrollView>
+      )}
+
+      {!chargement && erreur && (
+        <View style={styles.centre}>
+          <View style={styles.pastilleEtat}>
+            <Ionicons name="cloud-offline-outline" size={30} color={couleurs.erreur} />
+          </View>
+          <Text style={styles.titreEtat}>Chargement impossible</Text>
+          <Text style={styles.detailEtat}>{erreur}</Text>
+          <Pressable
+            onPress={reessayer}
+            style={({ pressed }) => [styles.bouton, pressed && styles.boutonEnfonce]}
+          >
+            <Ionicons name="refresh" size={16} color={couleurs.fond} />
+            <Text style={styles.boutonTexte}>Reessayer</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {!chargement && !erreur && (
+        <FlatList
+          data={visibles}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => <EvenementCarte evenement={item} />}
+          contentContainerStyle={styles.liste}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={rafraichissement}
+              onRefresh={rafraichir}
+              tintColor={couleurs.accent}
+              colors={[couleurs.accent]}
+              progressBackgroundColor={couleurs.carte}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.centre}>
+              <View style={styles.pastilleEtat}>
+                <Ionicons name="calendar-outline" size={30} color={couleurs.texteDoux} />
+              </View>
+              <Text style={styles.titreEtat}>Aucun evenement</Text>
+              <Text style={styles.detailEtat}>
+                {categorieActive
+                  ? "Rien dans cette categorie pour le moment."
+                  : "Tirez vers le bas pour rafraichir."}
+              </Text>
+            </View>
+          }
+          ListFooterComponent={
+            visibles.length > 0 ? (
+              <Text style={styles.pied}>Realise par Papa Ahmadou Mbow</Text>
+            ) : null
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  ecran: {
     flex: 1,
-    backgroundColor: "#f0f4f8",
-  },
-  entete: {
-    padding: 16,
-    backgroundColor: "#1a3a5c",
-  },
-  titre: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  sousTitre: {
-    fontSize: 14,
-    color: "#a8c5e0",
-    marginTop: 2,
+    backgroundColor: couleurs.fond,
   },
   liste: {
-    paddingVertical: 8,
+    paddingBottom: espaces.xl,
+    flexGrow: 1,
   },
   centre: {
-    marginTop: 40,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: espaces.xl,
+    paddingBottom: 60,
   },
-  erreur: {
-    color: "#a01a1a",
-    textAlign: "center",
-    marginTop: 40,
-    paddingHorizontal: 16,
+  pastilleEtat: {
+    width: 64,
+    height: 64,
+    borderRadius: rayons.pilule,
+    backgroundColor: couleurs.voile,
+    borderWidth: 1,
+    borderColor: couleurs.bordure,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: espaces.l,
   },
-  vide: {
-    textAlign: "center",
-    color: "#666",
-    marginTop: 40,
+  titreEtat: {
+    color: couleurs.texte,
+    fontSize: 17,
+    fontWeight: "700",
   },
-  footer: {
+  detailEtat: {
+    color: couleurs.texteDoux,
+    fontSize: 13,
     textAlign: "center",
-    color: "#888",
+    marginTop: espaces.xs,
+    lineHeight: 19,
+  },
+  bouton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: espaces.xl,
+    paddingHorizontal: espaces.xl,
+    paddingVertical: espaces.m,
+    borderRadius: rayons.pilule,
+    backgroundColor: couleurs.accent,
+  },
+  boutonEnfonce: {
+    opacity: 0.75,
+  },
+  boutonTexte: {
+    color: couleurs.fond,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  pied: {
+    textAlign: "center",
+    color: couleurs.texteFaible,
     fontSize: 12,
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: espaces.s,
   },
 });
