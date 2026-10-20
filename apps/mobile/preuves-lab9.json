@@ -1,0 +1,60 @@
+{
+  "liste": {
+    "chemin": "/",
+    "cartes": 10,
+    "evenementsRecus": 10,
+    "onglets": [
+      {
+        "href": "/",
+        "libelle": "Evenements"
+      },
+      {
+        "href": "/profil",
+        "libelle": "Profil"
+      }
+    ]
+  },
+  "detail": {
+    "carteTouchee": "/evenement/1",
+    "chemin": "/evenement/1",
+    "titreAttendu": "Concert acoustique de Youssou Junior",
+    "titreAffiche": true,
+    "lieuAffiche": true,
+    "enTeteDetail": true,
+    "flecheRetour": 1,
+    "requetesSupplementaires": 1
+  },
+  "retour": {
+    "chemin": "/"
+  },
+  "profil": {
+    "chemin": "/profil",
+    "placeholder": true
+  },
+  "retourOnglet": {
+    "chemin": "/",
+    "rechargementListe": 0
+  },
+  "bonus": {
+    "depuis": "/evenement/2",
+    "chemin": "/",
+    "flechesApres": 0
+  },
+  "lienDirect": {
+    "url": "/evenement/8",
+    "flecheRetour": 1,
+    "cheminApresRetour": "/"
+  },
+  "introuvable": {
+    "message": true,
+    "cheminApresBouton": "/"
+  },
+  "domainesContactes": [
+    "d8j0ntlcm91z4.cloudfront.net",
+    "localhost",
+    "placehold.co",
+    "siszafptxskyfdedpqsl.supabase.co"
+  ],
+  "supabaseContacte": true,
+  "erreursJs": []
+}

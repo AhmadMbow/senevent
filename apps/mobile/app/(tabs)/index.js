@@ -4,29 +4,22 @@ import {
   Text,
   View,
   FlatList,
-  SafeAreaView,
   RefreshControl,
   Pressable,
   ScrollView,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
-import { initSupabase, getEvenements } from "@senevent/shared";
-import EnteteAccueil from "./components/EnteteAccueil";
-import FiltreCategories from "./components/FiltreCategories";
-import EvenementCarte from "./components/EvenementCarte";
-import CarteSquelette from "./components/CarteSquelette";
-import { couleurs, rayons, espaces } from "./theme";
+import { getEvenements } from "@senevent/shared";
+import EnteteAccueil from "../../components/EnteteAccueil";
+import FiltreCategories from "../../components/FiltreCategories";
+import EvenementCarte from "../../components/EvenementCarte";
+import CarteSquelette from "../../components/CarteSquelette";
+import { couleurs, rayons, espaces } from "../../theme";
 
-// Initialiser Supabase avec les variables d'environnement d'Expo.
-// Cote web c'etait import.meta.env.VITE_... dans main.jsx : seule la facon de
-// lire les variables change, le package partage ne bouge pas d'une ligne.
-initSupabase(
-  process.env.EXPO_PUBLIC_SUPABASE_URL,
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
-);
-
-export default function App() {
+// Onglet "Evenements" : la logique de l'ancien App.js, deplacee telle quelle.
+// L'init Supabase est montee dans app/_layout.js, et la zone sure est geree
+// par le navigateur (barre d'onglets en bas, EnteteAccueil en haut).
+export default function Evenements() {
   const [evenements, setEvenements] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
@@ -80,8 +73,7 @@ export default function App() {
   );
 
   return (
-    <SafeAreaView style={styles.ecran}>
-      <StatusBar style="light" />
+    <View style={styles.ecran}>
       <EnteteAccueil nombre={evenements.length} chargement={chargement} />
 
       {!erreur && (
@@ -153,7 +145,7 @@ export default function App() {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
