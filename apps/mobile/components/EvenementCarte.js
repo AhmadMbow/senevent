@@ -1,82 +1,93 @@
 import { useState } from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, Pressable } from "react-native";
+import { Link } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { couleurs, rayons, espaces, voileAffiche, infosCategorie } from "../theme";
 import { jourDuMois, moisCourt, dateLisible, heure, formaterPrix } from "../format";
 
 // Carte d'un evenement : affiche en fond, pastille de date, badge de categorie,
-// titre et informations pratiques.
+// titre et informations pratiques. Toucher la carte pousse l'ecran de detail.
 // Meme donnee que EvenementCarte.jsx du web, seule la couche d'affichage change.
 export default function EvenementCarte({ evenement }) {
   const [imageCassee, setImageCassee] = useState(false);
   const categorie = infosCategorie(evenement.categorie);
   const afficherImage = evenement.image_url && !imageCassee;
 
+  // asChild : Link ne dessine rien lui-meme, il donne son comportement de
+  // navigation au Pressable. Le retour visuel passe par une fonction enfant
+  // plutot que par style={({ pressed }) => ...} : Link fusionne les styles
+  // en objets, et un style sous forme de fonction serait perdu en route.
   return (
-    <View style={styles.carte}>
-      <View style={styles.zoneAffiche}>
-        {afficherImage ? (
-          <Image
-            source={{ uri: evenement.image_url }}
-            style={styles.affiche}
-            resizeMode="cover"
-            onError={() => setImageCassee(true)}
-          />
-        ) : (
-          // Repli quand l'evenement n'a pas d'affiche ou qu'elle ne charge pas :
-          // un aplat aux couleurs de la categorie plutot qu'un trou blanc.
-          <View style={[styles.affiche, { backgroundColor: categorie.couleur }]}>
-            <Ionicons
-              name={categorie.icone}
-              size={44}
-              color="rgba(255, 255, 255, 0.35)"
-            />
+    <Link href={`/evenement/${evenement.id}`} asChild>
+      <Pressable>
+        {({ pressed }) => (
+          <View style={[styles.carte, pressed && styles.carteEnfoncee]}>
+            <View style={styles.zoneAffiche}>
+              {afficherImage ? (
+                <Image
+                  source={{ uri: evenement.image_url }}
+                  style={styles.affiche}
+                  resizeMode="cover"
+                  onError={() => setImageCassee(true)}
+                />
+              ) : (
+                // Repli quand l'evenement n'a pas d'affiche ou qu'elle ne charge pas :
+                // un aplat aux couleurs de la categorie plutot qu'un trou blanc.
+                <View style={[styles.affiche, { backgroundColor: categorie.couleur }]}>
+                  <Ionicons
+                    name={categorie.icone}
+                    size={44}
+                    color="rgba(255, 255, 255, 0.35)"
+                  />
+                </View>
+              )}
+
+              {/* Fond degrade : l'affiche se fond dans la carte, le texte reste lisible. */}
+              <LinearGradient
+                colors={voileAffiche}
+                locations={[0, 0.55, 1]}
+                style={StyleSheet.absoluteFill}
+                pointerEvents="none"
+              />
+
+              <View style={styles.pastilleDate}>
+                <Text style={styles.pastilleJour}>{jourDuMois(evenement.date_debut)}</Text>
+                <Text style={styles.pastilleMois}>{moisCourt(evenement.date_debut)}</Text>
+              </View>
+            </View>
+
+            <View style={styles.contenu}>
+              <View style={styles.ligneHaute}>
+                <View style={[styles.badge, { backgroundColor: categorie.couleur }]}>
+                  <Ionicons name={categorie.icone} size={11} color="#fff" />
+                  <Text style={styles.badgeTexte}>{evenement.categorie}</Text>
+                </View>
+                <Text style={styles.prix}>{formaterPrix(evenement.prix)}</Text>
+              </View>
+
+              <Text style={styles.titre} numberOfLines={2}>
+                {evenement.titre}
+              </Text>
+
+              <View style={styles.meta}>
+                <Ionicons name="location-outline" size={13} color={couleurs.texteDoux} />
+                <Text style={styles.metaTexte} numberOfLines={1}>
+                  {evenement.lieu_nom}
+                </Text>
+              </View>
+
+              <View style={styles.meta}>
+                <Ionicons name="time-outline" size={13} color={couleurs.texteDoux} />
+                <Text style={styles.metaTexte}>
+                  {dateLisible(evenement.date_debut)} a {heure(evenement.date_debut)}
+                </Text>
+              </View>
+            </View>
           </View>
         )}
-
-        {/* Fond degrade : l'affiche se fond dans la carte, le texte reste lisible. */}
-        <LinearGradient
-          colors={voileAffiche}
-          locations={[0, 0.55, 1]}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-
-        <View style={styles.pastilleDate}>
-          <Text style={styles.pastilleJour}>{jourDuMois(evenement.date_debut)}</Text>
-          <Text style={styles.pastilleMois}>{moisCourt(evenement.date_debut)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.contenu}>
-        <View style={styles.ligneHaute}>
-          <View style={[styles.badge, { backgroundColor: categorie.couleur }]}>
-            <Ionicons name={categorie.icone} size={11} color="#fff" />
-            <Text style={styles.badgeTexte}>{evenement.categorie}</Text>
-          </View>
-          <Text style={styles.prix}>{formaterPrix(evenement.prix)}</Text>
-        </View>
-
-        <Text style={styles.titre} numberOfLines={2}>
-          {evenement.titre}
-        </Text>
-
-        <View style={styles.meta}>
-          <Ionicons name="location-outline" size={13} color={couleurs.texteDoux} />
-          <Text style={styles.metaTexte} numberOfLines={1}>
-            {evenement.lieu_nom}
-          </Text>
-        </View>
-
-        <View style={styles.meta}>
-          <Ionicons name="time-outline" size={13} color={couleurs.texteDoux} />
-          <Text style={styles.metaTexte}>
-            {dateLisible(evenement.date_debut)} a {heure(evenement.date_debut)}
-          </Text>
-        </View>
-      </View>
-    </View>
+      </Pressable>
+    </Link>
   );
 }
 
@@ -94,6 +105,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
+  },
+  carteEnfoncee: {
+    opacity: 0.85,
+    transform: [{ scale: 0.985 }],
   },
   zoneAffiche: {
     height: 190,
