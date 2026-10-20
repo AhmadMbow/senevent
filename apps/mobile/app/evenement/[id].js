@@ -6,8 +6,9 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { getEvenements } from "@senevent/shared";
@@ -16,6 +17,24 @@ import { dateLisible, heure, formaterPrix } from "../../format";
 
 // Sous l'affiche, le degrade se fond cette fois dans le fond de l'ecran.
 const VOILE = ["rgba(11, 22, 34, 0)", "rgba(11, 22, 34, 0.45)", couleurs.fond];
+
+// Navigation par code, en plus de la fleche automatique du Stack.
+// router.push("/") empilerait une seconde copie des onglets par-dessus le
+// detail (depuis Expo Router v4, push pousse toujours un nouvel ecran).
+// dismissTo depile jusqu'a la liste, ou la met a la place du detail si on est
+// arrive par un lien direct.
+function BoutonRetourListe() {
+  const router = useRouter();
+  return (
+    <Pressable
+      onPress={() => router.dismissTo("/")}
+      style={({ pressed }) => [styles.bouton, pressed && styles.boutonEnfonce]}
+    >
+      <Ionicons name="list" size={16} color={couleurs.fond} />
+      <Text style={styles.boutonTexte}>Retour a la liste</Text>
+    </Pressable>
+  );
+}
 
 export default function Detail() {
   // La valeur qui a pris la place de [id] dans le chemin. Comme useParams au
@@ -66,6 +85,7 @@ export default function Detail() {
         <Text style={styles.detailEtat}>
           {erreur ?? `Aucun evenement ne porte l'identifiant ${id}.`}
         </Text>
+        <BoutonRetourListe />
       </View>
     );
   }
@@ -139,6 +159,8 @@ export default function Detail() {
           <Text style={styles.label}>Prix d'entree</Text>
           <Text style={styles.prix}>{formaterPrix(evenement.prix)}</Text>
         </View>
+
+        <BoutonRetourListe />
       </View>
     </ScrollView>
   );
@@ -245,6 +267,25 @@ const styles = StyleSheet.create({
     color: couleurs.accentClair,
     fontSize: 20,
     fontWeight: "800",
+  },
+  bouton: {
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: espaces.xl,
+    paddingHorizontal: espaces.xl,
+    paddingVertical: espaces.m,
+    borderRadius: rayons.pilule,
+    backgroundColor: couleurs.accent,
+  },
+  boutonEnfonce: {
+    opacity: 0.75,
+  },
+  boutonTexte: {
+    color: couleurs.fond,
+    fontWeight: "800",
+    fontSize: 14,
   },
   centre: {
     flex: 1,
