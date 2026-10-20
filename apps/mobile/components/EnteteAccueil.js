@@ -1,14 +1,15 @@
-import { View, Text, StyleSheet, Platform, StatusBar } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { couleurs, rayons, espaces } from "../theme";
 
 // En-tete de l'ecran d'accueil : degrade, marque et compteur d'evenements.
-// SafeAreaView ne protege que iOS ; sur Android on compense la barre d'etat
-// nous-memes avec StatusBar.currentHeight.
-const HAUTEUR_BARRE = Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0;
-
+// Il remplace l'en-tete du navigateur Tabs, c'est donc a lui de laisser la
+// place a l'encoche et a la barre d'etat. useSafeAreaInsets donne cette
+// hauteur sur iOS comme sur Android (plus besoin de StatusBar.currentHeight).
 export default function EnteteAccueil({ nombre, chargement }) {
+  const { top } = useSafeAreaInsets();
   const sousTitre = chargement
     ? "Chargement des evenements..."
     : `${nombre} evenement${nombre > 1 ? "s" : ""} a Dakar`;
@@ -18,7 +19,7 @@ export default function EnteteAccueil({ nombre, chargement }) {
       colors={[couleurs.fondEntete, "#102437", couleurs.fond]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.entete, { paddingTop: HAUTEUR_BARRE + espaces.l }]}
+      style={[styles.entete, { paddingTop: top + espaces.l }]}
     >
       <View style={styles.rangee}>
         <View style={styles.logo}>
