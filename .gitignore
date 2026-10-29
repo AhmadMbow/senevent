@@ -13,3 +13,7 @@ apps/mobile/.env
 
 # macOS
 .DS_Store
+
+# Donnees de test locales (comptes de test et leur mot de passe) : jamais
+# versionnees, ni envoyees a EAS Build qui suit ce fichier.
+supabase/fixtures/
