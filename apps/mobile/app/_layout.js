@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initSupabase } from "@senevent/shared";
 import { AuthProvider } from "../context/AuthContext";
 import { couleurs } from "../theme";
@@ -8,9 +9,21 @@ import { couleurs } from "../theme";
 // Initialiser Supabase une fois, au demarrage de l'app.
 // C'etait le role de l'ancien App.js : avec Expo Router, le layout racine est
 // le premier fichier execute, avant n'importe quel ecran.
+// React Native n'a pas de localStorage : sans stockage, supabase-js garderait
+// la session en memoire et l'utilisateur serait deconnecte a chaque
+// fermeture de l'app. AsyncStorage est le stockage persistant du telephone.
 initSupabase(
   process.env.EXPO_PUBLIC_SUPABASE_URL,
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      storage: AsyncStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+      // Pas de session a lire dans une URL de page, contrairement au web.
+      detectSessionInUrl: false,
+    },
+  }
 );
 
 // Ouvert directement par un lien profond (senevent://evenement/3), le detail
