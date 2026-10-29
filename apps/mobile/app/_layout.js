@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { initSupabase } from "@senevent/shared";
+import { AuthProvider } from "../context/AuthContext";
 import { couleurs } from "../theme";
 
 // Initialiser Supabase une fois, au demarrage de l'app.
@@ -19,25 +20,30 @@ export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
 
+// L'AuthProvider enveloppe tout le Stack : les onglets, le detail et l'ecran
+// de creation lisent la meme session avec useAuth().
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: couleurs.fondEntete },
-          headerTintColor: couleurs.texte,
-          headerTitleStyle: { fontWeight: "700" },
-          headerShadowVisible: false,
-          headerBackTitle: "Retour",
-          // Fond sombre pendant les transitions : sans lui, React Navigation
-          // affiche son fond clair par defaut le temps de l'animation.
-          contentStyle: { backgroundColor: couleurs.fond },
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="evenement/[id]" options={{ title: "Detail" }} />
-      </Stack>
+      <AuthProvider>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: couleurs.fondEntete },
+            headerTintColor: couleurs.texte,
+            headerTitleStyle: { fontWeight: "700" },
+            headerShadowVisible: false,
+            headerBackTitle: "Retour",
+            // Fond sombre pendant les transitions : sans lui, React Navigation
+            // affiche son fond clair par defaut le temps de l'animation.
+            contentStyle: { backgroundColor: couleurs.fond },
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="evenement/[id]" options={{ title: "Detail" }} />
+          <Stack.Screen name="nouveau" options={{ title: "Nouvel evenement" }} />
+        </Stack>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }
