@@ -7,7 +7,8 @@ const EvenementCarte = ({ ev, afficherDetails }) => {
   return (
     <Link to={`/evenement/${ev.id}`} className={styles.lien}>
       <div className={styles.carte}>
-        <h3 className={styles.titre}>{ev.titre}</h3>
+        <h3 className={styles.titre}>{ev.titre}</h3
+        {/* erreur de syntaxe volontaire : balise h3 non fermee (bonus Lab 11) */}
         <p className={styles.info}>Categorie : {ev.categorie}</p>
         {afficherDetails && (
           <p className={styles.info}>Lieu : {ev.lieu_nom}</p>
