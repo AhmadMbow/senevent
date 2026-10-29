@@ -8,7 +8,9 @@ import { couleurs, rayons, espaces } from "../theme";
 // Il remplace l'en-tete du navigateur Tabs, c'est donc a lui de laisser la
 // place a l'encoche et a la barre d'etat. useSafeAreaInsets donne cette
 // hauteur sur iOS comme sur Android (plus besoin de StatusBar.currentHeight).
-export default function EnteteAccueil({ nombre, chargement }) {
+// action : l'element place a droite, l'equivalent du headerRight d'un en-tete
+// de navigateur (ici le bouton "+" du Lab 10).
+export default function EnteteAccueil({ nombre, chargement, action }) {
   const { top } = useSafeAreaInsets();
   const sousTitre = chargement
     ? "Chargement des evenements..."
@@ -32,6 +34,8 @@ export default function EnteteAccueil({ nombre, chargement }) {
           </Text>
           <Text style={styles.sousTitre}>{sousTitre}</Text>
         </View>
+
+        {action}
       </View>
     </LinearGradient>
   );
