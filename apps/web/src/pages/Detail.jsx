@@ -54,11 +54,15 @@ const Detail = ({ evenements, session, onSupprime }) => {
       <p className={styles.meta}>
         <span className={styles.categorie}>{evenement.categorie}</span>
       </p>
-      <img
-        src={evenement.image_url}
-        alt={evenement.titre}
-        className={styles.image}
-      />
+      {/* Un evenement cree depuis le mobile (Lab 10) n'a pas d'affiche :
+          sans ce test, le navigateur dessinerait une image cassee. */}
+      {evenement.image_url && (
+        <img
+          src={evenement.image_url}
+          alt={evenement.titre}
+          className={styles.image}
+        />
+      )}
       <dl className={styles.infos}>
         <dt>Lieu</dt>
         <dd>{evenement.lieu_nom}</dd>
