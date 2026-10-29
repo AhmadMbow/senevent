@@ -238,7 +238,7 @@ function FormulaireAuth() {
       <Text style={styles.titre}>
         {inscription ? "Creer un compte" : "Se connecter"}
       </Text>
-      <Text style={styles.sousTitre}>Le meme compte que sur le site web.</Text>
+      <Text style={styles.sousTitre}>Le meme compte que sur senevent-mbow.vercel.app.</Text>
 
       {inscription && (
         <TextInput
