@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
+import { Link, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { seConnecter, sInscrire, seDeconnecter } from "@senevent/shared";
+import {
+  seConnecter,
+  sInscrire,
+  seDeconnecter,
+  mesInscriptions,
+} from "@senevent/shared";
 import { useAuth } from "../../context/AuthContext";
 import { couleurs, rayons, espaces } from "../../theme";
+import { jourDuMois, moisCourt, dateLisible, heure } from "../../format";
 
 export default function Profil() {
   const { session, chargement } = useAuth();
@@ -36,10 +44,36 @@ export default function Profil() {
 }
 
 function CompteConnecte({ session }) {
+  const [inscriptions, setInscriptions] = useState([]);
+  const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
   // Le nom saisi a l'inscription est range dans les metadonnees du compte
   // (c'est la que le trigger du Lab 5 va le chercher pour creer le profil).
   const nom = session.user.user_metadata?.nom;
+
+  // Bonus. useFocusEffect plutot que useEffect, pour la raison vue a
+  // l'etape 3 : on s'inscrit depuis l'ecran de detail, et l'onglet Profil,
+  // reste monte en arriere-plan, doit se mettre a jour quand on y revient.
+  useFocusEffect(
+    useCallback(() => {
+      const charger = async () => {
+        try {
+          const data = await mesInscriptions(session.user.id);
+          // Les plus proches d'abord, comme la liste des evenements.
+          data.sort((a, b) =>
+            a.evenements.date_debut.localeCompare(b.evenements.date_debut)
+          );
+          setInscriptions(data);
+          setErreur(null);
+        } catch (e) {
+          setErreur(e.message);
+        } finally {
+          setChargement(false);
+        }
+      };
+      charger();
+    }, [session.user.id])
+  );
 
   const deconnecter = async () => {
     setErreur(null);
@@ -53,25 +87,79 @@ function CompteConnecte({ session }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.avatar}>
-        <Text style={styles.initiale}>
-          {(nom ?? session.user.email).charAt(0).toUpperCase()}
-        </Text>
-      </View>
-      <Text style={styles.titre}>{nom ?? "Mon profil"}</Text>
-      <Text style={styles.email}>{session.user.email}</Text>
+    <FlatList
+      style={styles.ecran}
+      contentContainerStyle={styles.contenuCompte}
+      data={inscriptions}
+      keyExtractor={(item) => String(item.evenement_id)}
+      renderItem={({ item }) => <LigneInscription inscription={item} />}
+      ListHeaderComponent={
+        <View>
+          <View style={styles.avatar}>
+            <Text style={styles.initiale}>
+              {(nom ?? session.user.email).charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <Text style={styles.titre}>{nom ?? "Mon profil"}</Text>
+          <Text style={styles.email}>{session.user.email}</Text>
 
-      {erreur && <Text style={styles.erreur}>{erreur}</Text>}
+          <Text style={styles.section}>
+            Mes inscriptions{chargement ? "" : ` · ${inscriptions.length}`}
+          </Text>
+          {chargement && (
+            <ActivityIndicator color={couleurs.accent} style={styles.margeHaut} />
+          )}
+        </View>
+      }
+      ListEmptyComponent={
+        chargement ? null : (
+          <Text style={styles.vide}>
+            Aucune inscription pour l'instant. Ouvrez un evenement et touchez
+            « S'inscrire ».
+          </Text>
+        )
+      }
+      ListFooterComponent={
+        <View style={styles.margeHaut}>
+          {erreur && <Text style={styles.erreur}>{erreur}</Text>}
+          <Pressable
+            style={({ pressed }) => [styles.boutonDeco, pressed && styles.enfonce]}
+            onPress={deconnecter}
+          >
+            <Ionicons name="log-out-outline" size={18} color={couleurs.accentClair} />
+            <Text style={styles.boutonDecoTexte}>Se deconnecter</Text>
+          </Pressable>
+        </View>
+      }
+    />
+  );
+}
 
-      <Pressable
-        style={({ pressed }) => [styles.boutonDeco, pressed && styles.enfonce]}
-        onPress={deconnecter}
-      >
-        <Ionicons name="log-out-outline" size={18} color={couleurs.accentClair} />
-        <Text style={styles.boutonDecoTexte}>Se deconnecter</Text>
+// Une ligne de "Mes inscriptions" : toucher ramene au detail de l'evenement.
+function LigneInscription({ inscription }) {
+  const { titre, date_debut } = inscription.evenements;
+  return (
+    <Link href={`/evenement/${inscription.evenement_id}`} asChild>
+      <Pressable>
+        {({ pressed }) => (
+          <View style={[styles.ligne, pressed && styles.enfonce]}>
+            <View style={styles.pastilleDate}>
+              <Text style={styles.pastilleJour}>{jourDuMois(date_debut)}</Text>
+              <Text style={styles.pastilleMois}>{moisCourt(date_debut)}</Text>
+            </View>
+            <View style={styles.ligneTextes}>
+              <Text style={styles.ligneTitre} numberOfLines={1}>
+                {titre}
+              </Text>
+              <Text style={styles.ligneDate}>
+                {dateLisible(date_debut)} a {heure(date_debut)}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={couleurs.texteFaible} />
+          </View>
+        )}
       </Pressable>
-    </View>
+    </Link>
   );
 }
 
@@ -324,5 +412,70 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: espaces.m,
     lineHeight: 19,
+  },
+  ecran: {
+    flex: 1,
+    backgroundColor: couleurs.fond,
+  },
+  contenuCompte: {
+    padding: espaces.xl,
+  },
+  section: {
+    color: couleurs.texteDoux,
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: espaces.m,
+  },
+  margeHaut: {
+    marginTop: espaces.xl,
+  },
+  vide: {
+    color: couleurs.texteFaible,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  ligne: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: espaces.m,
+    padding: espaces.m,
+    marginBottom: espaces.s,
+    borderRadius: rayons.m,
+    backgroundColor: couleurs.carte,
+    borderWidth: 1,
+    borderColor: couleurs.bordure,
+  },
+  pastilleDate: {
+    width: 46,
+    paddingVertical: 6,
+    borderRadius: rayons.s,
+    backgroundColor: couleurs.voile,
+    alignItems: "center",
+  },
+  pastilleJour: {
+    color: couleurs.texte,
+    fontSize: 17,
+    fontWeight: "800",
+  },
+  pastilleMois: {
+    color: couleurs.accent,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  ligneTextes: {
+    flex: 1,
+  },
+  ligneTitre: {
+    color: couleurs.texte,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  ligneDate: {
+    color: couleurs.texteDoux,
+    fontSize: 12,
+    marginTop: 2,
   },
 });
