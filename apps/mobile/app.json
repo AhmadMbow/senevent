@@ -15,6 +15,9 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#0b1622"
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
       }
     },
     "web": {
@@ -39,6 +42,9 @@
         "projectId": "a38d166b-643b-4108-bd7c-3a111d4bc7a6"
       }
     },
-    "owner": "ahmadmbow2004"
+    "owner": "ahmadmbow2004",
+    "updates": {
+      "url": "https://u.expo.dev/a38d166b-643b-4108-bd7c-3a111d4bc7a6"
+    }
   }
 }
