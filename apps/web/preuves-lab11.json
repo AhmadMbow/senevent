@@ -1,0 +1,105 @@
+{
+  "avant": {
+    "date": "2026-10-29T10:37:12.141Z",
+    "accueil": {
+      "statut": 200,
+      "type": "text/html; charset=utf-8",
+      "erreur": null
+    },
+    "clic": {
+      "chemin": "/evenement/1",
+      "titre": "Concert acoustique de Youssou Junior"
+    },
+    "rechargement": {
+      "statut": 404,
+      "texte": [
+        "This page doesn’t exist",
+        "It may have been moved, removed, or never existed.",
+        "Go back"
+      ]
+    },
+    "lienDirect": {
+      "statut": 404,
+      "type": "text/plain; charset=utf-8",
+      "erreur": "NOT_FOUND"
+    },
+    "nouveau": {
+      "statut": 404,
+      "type": "text/plain; charset=utf-8",
+      "erreur": "NOT_FOUND"
+    }
+  },
+  "erreursJs_avant": [],
+  "apres": {
+    "date": "2026-10-29T10:45:53.455Z",
+    "rechargement": {
+      "chemin": "/evenement/1",
+      "statut": 200,
+      "titre": "Concert acoustique de Youssou Junior",
+      "url": "/evenement/1"
+    },
+    "lienDirect": {
+      "statut": 200,
+      "type": "text/html; charset=utf-8",
+      "erreur": null
+    },
+    "nouveau": {
+      "statut": 200,
+      "type": "text/html; charset=utf-8",
+      "erreur": null
+    },
+    "vraiFichier": {
+      "chemin": "/assets/index-BglgCng9.js",
+      "statut": 200,
+      "type": "application/javascript; charset=utf-8",
+      "erreur": null
+    },
+    "fichierAbsent": {
+      "statut": 200,
+      "type": "text/html; charset=utf-8",
+      "erreur": null
+    }
+  },
+  "recette": {
+    "r1": {
+      "secondes": 1.181,
+      "compteur": "10 evenement(s) trouve(s)"
+    },
+    "r2": {
+      "statut": 200,
+      "memeFiche": true
+    },
+    "r3": {
+      "statut": 200,
+      "titre": "Concert acoustique de Youssou Junior"
+    },
+    "r5": {
+      "dansLaListe": true,
+      "id": 17
+    },
+    "r6": {
+      "toujoursLa": true
+    },
+    "r7": {
+      "bouton": "Se desinscrire"
+    },
+    "r8": {
+      "visibleSurMobile": true
+    },
+    "r9": {
+      "boutonSupprimer": false,
+      "statutDeleteForce": 200,
+      "lignesSupprimees": 0,
+      "evenementEncoreLa": true
+    },
+    "r10": {
+      "fichiers": 3,
+      "serviceRole": false,
+      "clePublique": true
+    },
+    "nettoyage": {
+      "lignesSupprimees": 1
+    }
+  },
+  "erreursJs_apres": []
+}
