@@ -45,6 +45,12 @@ export default function Nouveau() {
     return e;
   };
 
+  // Corriger un champ efface son message d'erreur, sans attendre le prochain envoi.
+  const saisir = (champ, setter) => (valeur) => {
+    setter(valeur);
+    setErreurs((e) => ({ ...e, [champ]: undefined }));
+  };
+
   const soumettre = async () => {
     setErreurServeur(null);
     const trouvees = valider();
@@ -119,7 +125,7 @@ export default function Nouveau() {
           placeholder="Concert de jazz au Just 4 U"
           placeholderTextColor={couleurs.texteFaible}
           value={titre}
-          onChangeText={setTitre}
+          onChangeText={saisir("titre", setTitre)}
         />
         {erreurs.titre && <Text style={styles.erreur}>{erreurs.titre}</Text>}
 
@@ -151,7 +157,7 @@ export default function Nouveau() {
           placeholder="Institut francais, Dakar"
           placeholderTextColor={couleurs.texteFaible}
           value={lieu}
-          onChangeText={setLieu}
+          onChangeText={saisir("lieu", setLieu)}
         />
         {erreurs.lieu && <Text style={styles.erreur}>{erreurs.lieu}</Text>}
 
@@ -161,7 +167,7 @@ export default function Nouveau() {
           placeholder="0"
           placeholderTextColor={couleurs.texteFaible}
           value={prix}
-          onChangeText={setPrix}
+          onChangeText={saisir("prix", setPrix)}
           keyboardType="number-pad"
         />
         {erreurs.prix && <Text style={styles.erreur}>{erreurs.prix}</Text>}
