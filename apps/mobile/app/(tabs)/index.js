@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,8 +9,10 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
 import { getEvenements } from "@senevent/shared";
 import EnteteAccueil from "../../components/EnteteAccueil";
+import BoutonAjouter from "../../components/BoutonAjouter";
 import FiltreCategories from "../../components/FiltreCategories";
 import EvenementCarte from "../../components/EvenementCarte";
 import CarteSquelette from "../../components/CarteSquelette";
@@ -26,8 +28,8 @@ export default function Evenements() {
   const [rafraichissement, setRafraichissement] = useState(false);
   const [categorieActive, setCategorieActive] = useState(null);
 
-  // Une seule fonction de chargement, reutilisee au montage, au pull-to-refresh
-  // et par le bouton "Reessayer" de l'ecran d'erreur.
+  // Une seule fonction de chargement, reutilisee a chaque focus, au
+  // pull-to-refresh et par le bouton "Reessayer" de l'ecran d'erreur.
   const charger = useCallback(async () => {
     try {
       const data = await getEvenements();
@@ -38,9 +40,16 @@ export default function Evenements() {
     }
   }, []);
 
-  useEffect(() => {
-    charger().finally(() => setChargement(false));
-  }, [charger]);
+  // Un onglet n'est pas demonte quand on le quitte : un useEffect(fn, [])
+  // ne repasserait pas au retour de l'ecran de creation. useFocusEffect
+  // relance le chargement chaque fois que la liste redevient visible.
+  // Les squelettes ne s'affichent qu'au premier chargement, les suivants
+  // remplacent la liste sans la vider.
+  useFocusEffect(
+    useCallback(() => {
+      charger().finally(() => setChargement(false));
+    }, [charger])
+  );
 
   const rafraichir = useCallback(async () => {
     setRafraichissement(true);
@@ -74,7 +83,11 @@ export default function Evenements() {
 
   return (
     <View style={styles.ecran}>
-      <EnteteAccueil nombre={evenements.length} chargement={chargement} />
+      <EnteteAccueil
+        nombre={evenements.length}
+        chargement={chargement}
+        action={<BoutonAjouter />}
+      />
 
       {!erreur && (
         <FiltreCategories

@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { getEvenements } from "@senevent/shared";
+import BoutonInscription from "../../components/BoutonInscription";
 import { couleurs, rayons, espaces, infosCategorie } from "../../theme";
 import { dateLisible, heure, formaterPrix } from "../../format";
 
@@ -159,6 +160,8 @@ export default function Detail() {
           <Text style={styles.label}>Prix d'entree</Text>
           <Text style={styles.prix}>{formaterPrix(evenement.prix)}</Text>
         </View>
+
+        <BoutonInscription evenementId={evenement.id} />
 
         <BoutonRetourListe />
       </View>

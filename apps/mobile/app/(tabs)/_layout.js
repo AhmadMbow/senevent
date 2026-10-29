@@ -25,7 +25,8 @@ export default function TabsLayout() {
         options={{
           title: "Evenements",
           // L'onglet garde son en-tete de marque du Lab 8 (degrade + compteur),
-          // qui joue deja le role de barre de titre.
+          // qui joue deja le role de barre de titre. Un headerRight n'aurait
+          // donc rien ou s'afficher : le bouton "+" est passe a EnteteAccueil.
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons

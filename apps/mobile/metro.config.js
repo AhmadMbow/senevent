@@ -12,7 +12,7 @@ const modulesApp = path.resolve(projectRoot, "node_modules");
 const config = getDefaultConfig(projectRoot);
 
 // 1. Surveiller tout le monorepo : packages/shared doit declencher un reload.
-config.watchFolders = [workspaceRoot];
+config.watchFolders = [...new Set([...config.watchFolders, workspaceRoot])];
 
 // 2. Chercher les modules dans apps/mobile puis a la racine (ou npm les a hisses).
 config.resolver.nodeModulesPaths = [
