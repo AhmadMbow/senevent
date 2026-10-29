@@ -1,0 +1,19 @@
+name: build-web
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      # npm ci echoue si package-lock.json n'est pas a jour : il attrape les
+      # oublis de l'etape 1 du Lab 11.
+      - run: npm ci
+      - run: npm run build --workspace apps/web
