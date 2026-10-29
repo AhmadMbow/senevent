@@ -8,7 +8,7 @@
 // Prerequis :
 //   - `npx expo start --web --port 8090` dans apps/mobile
 //   - `npm run dev` dans apps/web (port 5173)
-//   - LAB10_MDP : le mot de passe des deux comptes de test (jamais dans Git)
+//   - SENEVENT_MDP_TEST : le mot de passe des deux comptes de test (jamais dans Git)
 // Les captures vont dans $CAPTURES_DIR (par defaut /tmp/senevent-lab10-screens).
 // Les deux evenements crees pendant le parcours sont supprimes a la fin.
 import puppeteer from "puppeteer-core";
@@ -20,9 +20,9 @@ const WEB = "http://localhost:5173";
 const OUT = process.env.CAPTURES_DIR ?? "/tmp/senevent-lab10-screens";
 mkdirSync(OUT, { recursive: true });
 
-const MDP = process.env.LAB10_MDP;
+const MDP = process.env.SENEVENT_MDP_TEST;
 if (!MDP) {
-  console.error("Definir LAB10_MDP (mot de passe des comptes de test du Lab 6).");
+  console.error("Definir SENEVENT_MDP_TEST (mot de passe des comptes de test du Lab 6).");
   process.exit(1);
 }
 const COMPTE_A = { email: "ahmadoussj+lab6a@gmail.com", nom: "Atou Diop" };

@@ -34,9 +34,15 @@ const api = async (chemin, options = {}) => {
 // Un compte par role du scenario. On utilise le plus-addressing de l'adresse du
 // proprietaire du projet : deliverable (le validateur Supabase exige un domaine
 // avec des MX) et sans risque d'ecrire a un inconnu.
+// Le mot de passe des comptes de test ne vit pas dans le depot (Lab 11).
+const MDP = process.env.SENEVENT_MDP_TEST;
+if (!MDP) {
+  console.error("Definir SENEVENT_MDP_TEST (mot de passe des comptes de test).");
+  process.exit(1);
+}
 const COMPTES = {
-  A: { email: "ahmadoussj+lab6a@gmail.com", password: "motdepasse123", nom: "Atou Diop" },
-  B: { email: "ahmadoussj+lab6b@gmail.com", password: "motdepasse123", nom: "Khady Ndiaye" },
+  A: { email: "ahmadoussj+lab6a@gmail.com", password: MDP, nom: "Atou Diop" },
+  B: { email: "ahmadoussj+lab6b@gmail.com", password: MDP, nom: "Khady Ndiaye" },
 };
 
 const connecter = async compte => {

@@ -12,7 +12,13 @@ const OUT = "/tmp/senevent-lab7-screens";
 mkdirSync(OUT, { recursive: true });
 
 const ID_EVENEMENT_A = 8; // evenement cree par le compte A au Lab 6
-const COMPTE_A = { email: "ahmadoussj+lab6a@gmail.com", pass: "motdepasse123" };
+// Le mot de passe des comptes de test ne vit pas dans le depot (Lab 11).
+const MDP = process.env.SENEVENT_MDP_TEST;
+if (!MDP) {
+  console.error("Definir SENEVENT_MDP_TEST (mot de passe des comptes de test).");
+  process.exit(1);
+}
+const COMPTE_A = { email: "ahmadoussj+lab6a@gmail.com", pass: MDP };
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
