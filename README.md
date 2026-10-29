@@ -6,7 +6,11 @@ Projet pédagogique — DAWM, M1 RETEL (DMI / FST / UCAD).
 
 ## En ligne
 - Application web : https://senevent-mbow.vercel.app
-- Deploiement continu : chaque merge sur main met la production a jour, chaque Pull Request recoit une URL de previsualisation.
+- Application Android (APK) : https://expo.dev/accounts/ahmadmbow2004/projects/senevent/builds/185454a6-f134-4979-b50c-fc5318437371
+- Version mobile : 1.0.0 (profil EAS "preview")
+- Deploiement continu : chaque merge sur main met la production web a jour, chaque Pull Request recoit une URL de previsualisation.
+
+Installer l'APK : ouvrir le lien sur un telephone Android (ou scanner le QR code de la page), telecharger, puis autoriser l'installation depuis cette source. Google Play Protect peut signaler une application inconnue : c'est normal hors du Play Store.
 
 ## Structure
 
@@ -22,7 +26,7 @@ supabase/
 
 Les deux applications n'appellent jamais Supabase directement : elles passent par `@senevent/shared` (`getEvenements`, `creerEvenement`, `seConnecter`, `inscrire`…).
 
-## Developper en local
+## Lancer le projet en local
 
 Le depot est un monorepo npm workspaces : on installe une seule fois, a la racine.
 
@@ -47,8 +51,10 @@ La cle `service_role` ne doit jamais apparaitre dans ces fichiers : tout ce qui 
 
 ## Deploiement
 
-Le projet Vercel `senevent-mbow` construit `apps/web` (Root Directory), avec les variables `VITE_SUPABASE_*` definies cote Vercel pour Production et Preview. `apps/web/vercel.json` renvoie `index.html` pour toute adresse : les liens directs comme `/evenement/3` fonctionnent. Le workflow `build-web` de GitHub Actions construit l'application sur chaque Pull Request vers `main`.
+**Web.** Le projet Vercel `senevent-mbow` construit `apps/web` (Root Directory), avec les variables `VITE_SUPABASE_*` definies cote Vercel pour Production et Preview. `apps/web/vercel.json` renvoie `index.html` pour toute adresse : les liens directs comme `/evenement/3` fonctionnent. Le workflow `build-web` de GitHub Actions construit l'application sur chaque Pull Request vers `main`.
+
+**Mobile.** EAS Build construit l'APK depuis `apps/mobile` (`eas build --platform android --profile preview`), sur les serveurs d'Expo. Les variables `EXPO_PUBLIC_SUPABASE_*` sont declarees dans l'environnement EAS `preview` : le `.env` local n'est jamais envoye. La session est rangee dans AsyncStorage et survit a la fermeture de l'application. Les corrections purement JavaScript peuvent etre publiees sans nouvel APK avec EAS Update (`eas update --channel preview --environment preview`).
 
 ## Versions
 
-Un tag par lab : `v0.4-spa` … `v0.10-mobile-crud`, puis `v1.0-web` pour la mise en production.
+Un tag par lab : `v0.4-spa` … `v0.10-mobile-crud`, `v1.0-web` pour la mise en production du web, puis `v2.0` pour l'APK Android.
