@@ -16,6 +16,7 @@ export const couleurs = {
   accent: "#ea7d2b",
   accentClair: "#f4a259",
   erreur: "#ff7b72",
+  succes: "#4cc38a",
 };
 
 // Degrade applique sous l'affiche pour que le texte blanc reste lisible

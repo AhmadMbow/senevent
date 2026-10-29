@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     marginBottom: espaces.m,
   },
   info: {
-    color: "#7ee0a1",
+    color: couleurs.succes,
     textAlign: "center",
     marginBottom: espaces.m,
     lineHeight: 19,
