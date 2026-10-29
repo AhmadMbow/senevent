@@ -1,0 +1,101 @@
+{
+  "deconnecte": {
+    "cartes": 10,
+    "boutonPlus": false
+  },
+  "formulaire": {
+    "champs": [
+      "Email",
+      "Mot de passe"
+    ],
+    "motDePasseMasque": "password"
+  },
+  "inscriptionCompte": {
+    "champs": [
+      "Nom d'affichage",
+      "Email",
+      "Mot de passe"
+    ],
+    "message": true,
+    "appelsSignup": 0
+  },
+  "mauvaisMotDePasse": {
+    "message": "Invalid login credentials",
+    "statut": 400
+  },
+  "connexion": {
+    "statut": 200,
+    "nomAffiche": true,
+    "emailAffiche": true,
+    "formulaireRemplace": true,
+    "inscriptionsAvant": 1
+  },
+  "connecte": {
+    "boutonPlus": true,
+    "rechargementAuFocus": 1
+  },
+  "validationCreation": {
+    "chemin": "/nouveau",
+    "titre": true,
+    "lieu": true,
+    "requetesEnvoyees": 0
+  },
+  "creation": {
+    "statutInsert": 201,
+    "cheminApres": "/",
+    "nombreAvant": 10,
+    "nombreApres": 11,
+    "id": 15,
+    "categorie": "concert",
+    "prix": 2500,
+    "organisateur": "Atou Diop",
+    "carteVisible": true
+  },
+  "webVoitMobile": {
+    "dansLaListe": true,
+    "organisateur": true,
+    "imageCassee": false
+  },
+  "webCree": {
+    "statutInsert": 201
+  },
+  "mobileVoitWeb": {
+    "rechargements": 1,
+    "id": 16,
+    "organisateur": "Khady Ndiaye"
+  },
+  "inscription": {
+    "statutInsert": 201,
+    "lignesEnBase": 1,
+    "ligneDuCompteA": true
+  },
+  "webVoitInscription": {
+    "bouton": "Se desinscrire"
+  },
+  "bonus": {
+    "inscriptionsAvant": 1,
+    "inscriptionsApres": 2,
+    "contientEvenementWeb": true
+  },
+  "deconnexion": {
+    "statut": 204,
+    "formulaireRevenu": true,
+    "boutonPlus": false,
+    "detailInvite": true
+  },
+  "gardeNouveau": {
+    "cheminApresBouton": "/profil"
+  },
+  "nettoyage": {
+    "evenementMobile": 1,
+    "evenementWeb": 1
+  },
+  "domainesContactes": [
+    "d8j0ntlcm91z4.cloudfront.net",
+    "localhost",
+    "placehold.co",
+    "siszafptxskyfdedpqsl.supabase.co"
+  ],
+  "supabaseContacte": true,
+  "erreursJs": []
+}
