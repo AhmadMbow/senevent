@@ -47,7 +47,11 @@ const envs = sh(`git ls-files | grep -c "\\.env" || true`);
 const enLigne = sh(`grep -A2 "En ligne" README.md`);
 const curlProd = sh(`curl -s -o /dev/null -w "%{http_code}" ${PROD}/evenement/1`);
 const curlNouveau = sh(`curl -s -o /dev/null -w "%{http_code}" ${PROD}/nouveau`);
-const commitsLab = sh(`git log v0.10-mobile-crud..HEAD --oneline --no-merges`).split("\n").filter(Boolean);
+// Le rattachement de l'historique GitHub (Labs 0-3) fait entrer ses commits
+// dans v0.10-mobile-crud..HEAD : on les exclut pour compter ceux du lab.
+const ancienMain = sh(`git log --merges --grep="rattache l'historique" --format=%P -1`).split(" ")[1];
+const commitsAnciens = sh(`git rev-list --count ${ancienMain}`);
+const commitsLab = sh(`git log v0.10-mobile-crud..HEAD --oneline --no-merges --not ${ancienMain}`).split("\n").filter(Boolean);
 const mergesLab = sh(`git log v0.10-mobile-crud..HEAD --oneline --merges`).split("\n").filter(Boolean);
 const mergesPr = mergesLab.filter((m) => /Merge pull request/.test(m));
 
@@ -357,6 +361,7 @@ Error: [BUILD_UTILS_SPAWN_1] Command "npm run build" exited with 1</pre>
     <h2><span class="sec-n">10</span> Ce qui a changé dans le dépôt</h2>
     <pre>${esc(arbre)}</pre>
     <p>Peu de fichiers : l'essentiel du lab est de la configuration (Vercel, Supabase, GitHub) et de la vérification. Le lab compte ${commitsLab.length} commits depuis <code>v0.10-mobile-crud</code> et ${mergesLab.length} merges : ${mergesPr.length} fusions de Pull Request, et ${mergesLab.length - mergesPr.length === 1 ? "le rattachement" : `${mergesLab.length - mergesPr.length} autres merges, dont le rattachement`} de l'historique des Labs 1–3, fait en local avant le premier push.</p>
+    <p><b>À l'attention du correcteur.</b> Ce rattachement a une conséquence sur la commande de la section 11.2 : <code>git log v0.10-mobile-crud..v1.0-web</code> liste aussi les ${esc(commitsAnciens)} commits des Labs 0–3 (de <code>${esc(sh(`git rev-list --max-parents=0 ${ancienMain}`).slice(0, 7))}</code> à <code>${esc(ancienMain.slice(0, 7))}</code>), qui ne sont pas accessibles depuis <code>v0.10-mobile-crud</code>. Ils ne font pas partie du Lab 11 ; les ${commitsLab.length} commits du lab s'obtiennent avec <code>git log v0.10-mobile-crud..v1.0-web --no-merges --not ${esc(ancienMain.slice(0, 7))}</code>.</p>
   </section>
 
   <section class="avoid">
@@ -378,6 +383,7 @@ Error: [BUILD_UTILS_SPAWN_1] Command "npm run build" exited with 1</pre>
         ["recette depuis un telephone en 4G", "recette automatisee, format telephone, reseau « Fast 4G » simule", "reproductible et mesuree ; le passage sur un vrai telephone reste a faire (section 13)"],
         ["protection de main avec le build obligatoire", "build obligatoire, administrateurs compris", "le proprietaire ne peut plus contourner le controle"],
         ["—", "rotation du mot de passe des comptes de test", "le depot devient public et le mot de passe etait dans l'historique"],
+        ["git log v0.10-mobile-crud..v1.0-web", "liste aussi les commits des Labs 0–3", "historique GitHub rattache par un merge, sans reecriture (section 10)"],
       ]
     )}
   </section>

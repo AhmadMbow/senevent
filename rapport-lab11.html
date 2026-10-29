@@ -108,7 +108,7 @@
       <span class="chip">senevent-mbow.vercel.app</span>
       <span class="chip">Root Directory apps/web</span>
       <span class="chip">vercel.json</span>
-      <span class="chip">4 Pull Requests</span>
+      <span class="chip">5 Pull Requests</span>
       <span class="chip">build obligatoire sur main</span>
     </div>
   </div>
@@ -213,10 +213,10 @@ Error: [BUILD_UTILS_SPAWN_1] Command "npm run build" exited with 1</pre>
 
   <section class="avoid pb">
     <h2><span class="sec-n">05</span> Le déploiement continu, PR par PR</h2>
-    <p>Une fois Vercel branché, on ne déploie plus à la main : le merge sur <code>main</code> est la mise en production. Les 4 Pull Requests du lab, état relu au moment de générer ce rapport :</p>
+    <p>Une fois Vercel branché, on ne déploie plus à la main : le merge sur <code>main</code> est la mise en production. Les 5 Pull Requests du lab, état relu au moment de générer ce rapport :</p>
     <table>
       <thead><tr><th>PR</th><th>Objet</th><th>Build GitHub Actions</th><th>Preview Vercel</th><th>Issue</th></tr></thead>
-      <tbody><tr><td>#1</td><td class="mono">debloquer le premier build (lock)</td><td class="mono">— (workflow absent)</td><td class="mono">prete</td><td class="mono">fusionnee</td></tr><tr><td>#2</td><td class="mono">vercel.json + CI du bonus</td><td class="mono">reussi</td><td class="mono">prete</td><td class="mono">fusionnee</td></tr><tr><td>#3</td><td class="mono">README, section En ligne</td><td class="mono">reussi</td><td class="mono">prete</td><td class="mono">fusionnee</td></tr><tr><td>#4</td><td class="mono">test du bonus : build volontairement casse</td><td class="mono">echec</td><td class="mono">echec</td><td class="mono">fermee sans fusion</td></tr></tbody>
+      <tbody><tr><td>#1</td><td class="mono">debloquer le premier build (lock)</td><td class="mono">— (workflow absent)</td><td class="mono">prete</td><td class="mono">fusionnee</td></tr><tr><td>#2</td><td class="mono">vercel.json + CI du bonus</td><td class="mono">reussi</td><td class="mono">prete</td><td class="mono">fusionnee</td></tr><tr><td>#3</td><td class="mono">README, section En ligne</td><td class="mono">reussi</td><td class="mono">prete</td><td class="mono">fusionnee</td></tr><tr><td>#4</td><td class="mono">test du bonus : build volontairement casse</td><td class="mono">echec</td><td class="mono">echec</td><td class="mono">fermee sans fusion</td></tr><tr><td>#5</td><td class="mono">Rapport Lab 11 : deploiement web sur Vercel</td><td class="mono">reussi</td><td class="mono">prete</td><td class="mono">fusionnee</td></tr></tbody>
     </table>
     <p style="margin-top:10px">La PR #1 n'a pas de job <code>build</code> : le workflow n'existait pas encore sur sa branche. Les préversions sont protégées par l'authentification Vercel : seuls les membres du projet les ouvrent, ce que le relecteur doit savoir (section 13).</p>
     <div class="grille-shots">
@@ -396,7 +396,8 @@ jobs:
     mobile/
   packages/
     shared/</pre>
-    <p>Peu de fichiers : l'essentiel du lab est de la configuration (Vercel, Supabase, GitHub) et de la vérification. Le lab compte 14 commits depuis <code>v0.10-mobile-crud</code> et 4 merges : 3 fusions de Pull Request, et le rattachement de l'historique des Labs 1–3, fait en local avant le premier push.</p>
+    <p>Peu de fichiers : l'essentiel du lab est de la configuration (Vercel, Supabase, GitHub) et de la vérification. Le lab compte 6 commits depuis <code>v0.10-mobile-crud</code> et 5 merges : 4 fusions de Pull Request, et le rattachement de l'historique des Labs 1–3, fait en local avant le premier push.</p>
+    <p><b>À l'attention du correcteur.</b> Ce rattachement a une conséquence sur la commande de la section 11.2 : <code>git log v0.10-mobile-crud..v1.0-web</code> liste aussi les 9 commits des Labs 0–3 (de <code>feda5d2</code> à <code>e74408b</code>), qui ne sont pas accessibles depuis <code>v0.10-mobile-crud</code>. Ils ne font pas partie du Lab 11 ; les 6 commits du lab s'obtiennent avec <code>git log v0.10-mobile-crud..v1.0-web --no-merges --not e74408b</code>.</p>
   </section>
 
   <section class="avoid">
@@ -446,7 +447,7 @@ jobs:
       <td class="ok">✓</td>
     </tr><tr>
       <td>Production construite depuis main</td>
-      <td class="mono">statut Vercel de e36a8e1</td>
+      <td class="mono">statut Vercel de 0758865</td>
       <td class="mono">success</td>
       <td class="ok">✓</td>
     </tr><tr>
@@ -467,7 +468,7 @@ jobs:
     <h2><span class="sec-n">12</span> Écarts par rapport au sujet</h2>
     <table>
       <thead><tr><th>Le sujet</th><th>Ici</th><th>Pourquoi</th></tr></thead>
-      <tbody><tr><td>senevent-equipe-X</td><td class="mono">senevent-mbow</td><td class="mono">nom de projet choisi par l'équipe</td></tr><tr><td>supprimer apps/web/package-lock.json</td><td class="mono">rien a supprimer, mais le lock de la racine corrige (PR #1)</td><td class="mono">le lock unique ne contenait pas les binaires Linux de rollup et d'esbuild</td></tr><tr><td>recette depuis un telephone en 4G</td><td class="mono">recette automatisee, format telephone, reseau « Fast 4G » simule</td><td class="mono">reproductible et mesuree ; le passage sur un vrai telephone reste a faire (section 13)</td></tr><tr><td>protection de main avec le build obligatoire</td><td class="mono">build obligatoire, administrateurs compris</td><td class="mono">le proprietaire ne peut plus contourner le controle</td></tr><tr><td>—</td><td class="mono">rotation du mot de passe des comptes de test</td><td class="mono">le depot devient public et le mot de passe etait dans l'historique</td></tr></tbody>
+      <tbody><tr><td>senevent-equipe-X</td><td class="mono">senevent-mbow</td><td class="mono">nom de projet choisi par l'équipe</td></tr><tr><td>supprimer apps/web/package-lock.json</td><td class="mono">rien a supprimer, mais le lock de la racine corrige (PR #1)</td><td class="mono">le lock unique ne contenait pas les binaires Linux de rollup et d'esbuild</td></tr><tr><td>recette depuis un telephone en 4G</td><td class="mono">recette automatisee, format telephone, reseau « Fast 4G » simule</td><td class="mono">reproductible et mesuree ; le passage sur un vrai telephone reste a faire (section 13)</td></tr><tr><td>protection de main avec le build obligatoire</td><td class="mono">build obligatoire, administrateurs compris</td><td class="mono">le proprietaire ne peut plus contourner le controle</td></tr><tr><td>—</td><td class="mono">rotation du mot de passe des comptes de test</td><td class="mono">le depot devient public et le mot de passe etait dans l'historique</td></tr><tr><td>git log v0.10-mobile-crud..v1.0-web</td><td class="mono">liste aussi les commits des Labs 0–3</td><td class="mono">historique GitHub rattache par un merge, sans reecriture (section 10)</td></tr></tbody>
     </table>
   </section>
 
